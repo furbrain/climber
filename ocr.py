@@ -3,13 +3,14 @@ import easyocr
 import cv2
 import numpy as np
 
+import form
 import sessions
 
 DPI=300
 
 class OCR:
     def __init__(self):
-        self.reader = easyocr.Reader(['en'], gpu=False)
+        self.reader = easyocr.Reader(['en'])
         self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
         self.bounds = None
 
@@ -55,7 +56,7 @@ class OCR:
 
     def get_bounds(self):
         if self.bounds is None:
-            bounds = sessions.get_bounds()
+            bounds = form.PDF.get_bounds()
             bounds[:, :, 0:2] += 0.5
             bounds[:, :, 2:4] -= 0.5
             boxes = bounds.copy()

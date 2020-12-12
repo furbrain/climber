@@ -13,7 +13,8 @@ import wx
 # begin wxGlade: extracode
 import wx.grid
 # end wxGlade
-import sessions
+import form
+from sessions import Session
 import webbrowser
 import ocr
 
@@ -135,7 +136,9 @@ class MyFrame(wx.Frame):
                 return
             paths = fd.GetPaths()
             for path in paths:
-                self.session_people.extend(sessions.get_people(path))
+                session = Session.fromFile(path)
+                self.session_people.extend(session.people)
+
         self.session_people = sorted(self.session_people, key=lambda x:x['time'])
         self.update_session_list()
 
@@ -150,7 +153,8 @@ class MyFrame(wx.Frame):
         #     f.write(sessions.make_pdf(self.session_people))
         row_count = self.vaccinator_data.GetNumberRows()
         vaccinator_initials = [self.vaccinator_data.GetCellValue(i,0) for i in range(row_count)]
-        sessions.make_pdf(vaccinator_initials, self.session_people, name)
+        pdf = form.PDF(vaccinator_initials, self.session_people)
+        pdf.save(name)
         #img = ocr.ocrreader.read_file(name)
         #print(img)
         #ocr.ocrreader.find_circles(img)
