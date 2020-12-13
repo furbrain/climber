@@ -11,5 +11,8 @@ class Session:
     @staticmethod
     def fromFile(fname: str):
         from rtf_session import RTFSession
+        from csv_session import CSVSession
         if fname.lower().endswith(".rtf"):
             return RTFSession(fname)
+        if fname.lower().endswith(".csv"):
+            return CSVSession(fname)

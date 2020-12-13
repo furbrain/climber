@@ -130,7 +130,7 @@ class MyFrame(wx.Frame):
     def importSession(self, event):  # wxGlade: MyFrame.<event_handler>
         with wx.FileDialog(self,
                            "Open Session files",
-                           wildcard="RTF files (*.rtf)|*.rtf",
+                           wildcard="Session files (*.rtf; *.csv)|*.rtf;*.csv",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE) as fd:
             if fd.ShowModal() == wx.CANCEL:
                 return
