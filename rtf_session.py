@@ -30,14 +30,14 @@ class RTFSession(sessions.Session):
         time = cells[0][0]
         if time == "TIME":
             return None
-        print(cells)
-        # data = [x.strip() for x in cells[1]]
         data = ''.join(cells[1])
         data = data.splitlines()
         name = data[0]
+        name  = re.sub(r"\(.*\)", "", name)
         dob = self.find_regex(data, self.DOB_REGEX)
         dob = dateutil.parser.parse(dob)
         nhs = self.find_regex(data, self.NHS_REGEX)
+        nhs = nhs.replace(" ","")
         return {'name': name, 'dob': dob, 'nhs': nhs, 'time': time}
 
     def load(self, fname):
