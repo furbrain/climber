@@ -44,7 +44,6 @@ class RTFSession(sessions.Session):
         with open(fname, "r") as f:
             rtf = f.read()
             html_text = subprocess.run(["unrtf", "--html"], input=rtf, capture_output=True, text=True).stdout
-        print(html_text)
         doc = BeautifulSoup(html_text, 'html.parser')
         self.people = []
         for row in doc.find_all("tr"):

@@ -170,30 +170,19 @@ class MyFrame(wx.Frame):
 
     def loadForms(self, event):  # wxGlade: MyFrame.<event_handler>
         with wx.FileDialog(self,
-                           "Open Session files",
-                           wildcard="TIFF files (*.tif)|*.tif",
+                           "Open Scanned Forms",
+                           wildcard="Image files (*.tif; *.png; *.jpg)|*.tif;*.png;*.jpeg",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE) as fd:
             if fd.ShowModal() == wx.CANCEL:
                 return
             paths = fd.GetPaths()
             for path in paths:
                 img = ocr.ocrreader.read_file(path)
-                ocr_times = ocr.ocrreader.read_times()
-                times = [p['time'] for p in self.session_people]
-                if (self.check_matching(ocr_times, times)):
-                    print("Times Match")
-                ocr_dobs = ocr.ocrreader.read_dobs()
-                dobs = [p['dob'] for p in self.session_people]
-                if (self.check_matching(ocr_dobs, dobs)):
-                    print("DoBs match")
-                ocr_nhss = ocr.ocrreader.read_nhs_nums()
-                nhss = [p['nhs'].replace(" ","") for p in self.session_people]
-                if (self.check_matching(ocr_nhss, nhss)):
-                    print("NHSs match")
-                ocr_names = ocr.ocrreader.read_names()
-                names = [p['name'] for p in self.session_people]
-                if (self.check_matching(ocr_names, names)):
-                    print("Names match")
+                wx.BeginBusyCursor()
+                ocr.ocrreader.map_image()
+                print(ocr.ocrreader.read_times())
+                print(ocr.ocrreader.read_nhs_nums())
+                wx.EndBusyCursor()
 
     def clearScannedData(self, event):  # wxGlade: MyFrame.<event_handler>
         print("Event handler 'clearScannedData' not implemented!")

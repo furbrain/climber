@@ -1,0 +1,14 @@
+Error reporting:
+    When reading score-cards:
+        double check initials against vaccinator list
+
+     Create PDF error report
+        - no NHS number
+        - no box ticked
+        - multiple boxes ticked
+        - no dob
+        NHS number / dob does not match
+        NHS number / dob does not match on pinnacle
+        Pinnacle refuses to accept or other confusion....
+
+         - box ticked but no NHS number / dob
