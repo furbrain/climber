@@ -12,3 +12,12 @@ Error reporting:
         Pinnacle refuses to accept or other confusion....
 
          - box ticked but no NHS number / dob
+
+Functionality:
+
+
+Test Suite:
+    this would be a good idea...
+
+Logging:
+    just have a window to record log entries - helps with debugging

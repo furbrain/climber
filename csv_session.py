@@ -20,5 +20,6 @@ class CSVSession(sessions.Session):
             self.people = self.people[1:]
         for person in self.people:
             person['dob'] = dateutil.parser.parse(person['dob'])
+            person['nhs'] = str(person['nhs']).replace(" ", "")
 
         return self.people

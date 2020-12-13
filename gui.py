@@ -169,6 +169,7 @@ class MyFrame(wx.Frame):
         return success
 
     def loadForms(self, event):  # wxGlade: MyFrame.<event_handler>
+        nhs_map = {p['nhs']: p for p in self.session_people}
         with wx.FileDialog(self,
                            "Open Scanned Forms",
                            wildcard="Image files (*.tif; *.png; *.jpg)|*.tif;*.png;*.jpeg",
@@ -176,13 +177,52 @@ class MyFrame(wx.Frame):
             if fd.ShowModal() == wx.CANCEL:
                 return
             paths = fd.GetPaths()
+            imported_people = []
             for path in paths:
-                img = ocr.ocrreader.read_file(path)
+                print(f"Working on {path}")
                 wx.BeginBusyCursor()
-                ocr.ocrreader.map_image()
-                print(ocr.ocrreader.read_times())
-                print(ocr.ocrreader.read_nhs_nums())
+                details = ocr.ocrreader.get_all_details(path)
                 wx.EndBusyCursor()
+
+                for p in details:
+                    print(p)
+                    if p['nhs'] not in nhs_map:
+                        print(f"Person with NHS number: {p['nhs']} has no matching number found")
+                        continue
+                    if nhs_map[p['nhs']]['dob'] == p['dob']:
+                        # we have a match!
+                        p['valid'] = len(p['boxes']) == 1
+                        p['name'] = nhs_map[p['nhs']]['name']
+                        print(f"Adding {p['name']}")
+                        p['time'] = nhs_map[p['nhs']]['time']
+                        if len(p['boxes']) == 1:
+                            p['vaccinator'] = self.vaccinator_data.GetCellValue(p['boxes'][0],1)
+                        elif len(p['boxes']) > 1:
+                            p['vaccinator'] = "Too many boxes ticked"
+                        else:
+                            p['vaccinator'] = "Not enough boxes ticked ?DNA"
+                        imported_people.append(p)
+                    else:
+                        print(f"dob mismatch {p['dob']} vs {nhs_map[p['nhs']]['dob']}")
+            self.add_scanned_people(imported_people)
+
+    def add_scanned_people(self, people):
+        self.form_data_list.DeleteAllItems()
+        for idx, person in enumerate(people):
+            self.form_data_list.InsertItem(idx, person['time'])
+            self.form_data_list.SetItem(idx, 1, person['name'])
+            self.form_data_list.SetItem(idx, 2,  person['dob'].strftime("%d-%m-%Y"))
+            self.form_data_list.SetItem(idx, 3, person['nhs'] or '')
+            self.form_data_list.SetItem(idx, 4, person['vaccinator'])
+            if not (person['valid']):
+                self.form_data_list.SetItemTextColour(idx, "red")
+        #self.session_person_count.SetLabel(str(len(self.session_people)))
+        if len(self.session_people)==0:
+            for i in range(4):
+                self.form_data_list.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
+        else:
+            for i in range(4):
+                self.form_data_list.SetColumnWidth(i,wx.LIST_AUTOSIZE)
 
     def clearScannedData(self, event):  # wxGlade: MyFrame.<event_handler>
         print("Event handler 'clearScannedData' not implemented!")
