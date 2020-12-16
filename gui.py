@@ -14,7 +14,8 @@ import wx
 import wx.grid
 # end wxGlade
 import form
-from sessions import Session
+import person
+import sessions
 import webbrowser
 import ocr
 
@@ -49,7 +50,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.clearScannedData, self.button_5)
         self.Bind(wx.EVT_BUTTON, self.uploadData, self.button_6)
         # end wxGlade
-        self.session_people = []
+        self.people = person.Everyone()
 
     def __set_properties(self):
         # begin wxGlade: MyFrame.__set_properties
@@ -114,18 +115,39 @@ class MyFrame(wx.Frame):
 
     def update_session_list(self):
         self.session_data.DeleteAllItems()
-        for idx, person in enumerate(self.session_people):
-            self.session_data.InsertItem(idx, person['time'])
-            self.session_data.SetItem(idx, 1, person['name'])
-            self.session_data.SetItem(idx, 2,  person['dob'].strftime("%d-%m-%Y"))
-            self.session_data.SetItem(idx, 3, person['nhs'] or '')
-        self.session_person_count.SetLabel(str(len(self.session_people)))
-        if len(self.session_people)==0:
+        imported = sorted(self.people.filter(status="imported"), key=lambda x: x.time)
+        for idx, p in enumerate(imported):
+            self.session_data.InsertItem(idx, f"{p.time:%H:%M}")
+            self.session_data.SetItem(idx, 1, p.name)
+            self.session_data.SetItem(idx, 2,  f"{p.dob:%d-%m-%Y}")
+            self.session_data.SetItem(idx, 3, f"{p.nhs:010}")
+        self.session_person_count.SetLabel(str(len(imported)))
+        if len(imported)==0:
             for i in range(4):
                 self.session_data.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
         else:
             for i in range(4):
                 self.session_data.SetColumnWidth(i,wx.LIST_AUTOSIZE)
+
+    def update_scanned_list(self):
+        self.form_data_list.DeleteAllItems()
+        people = self.people.filter(status="scanned")
+        for idx, p in enumerate(people):
+            self.form_data_list.InsertItem(idx, f"{p.time:%H:%M}")
+            self.form_data_list.SetItem(idx, 1, p.name)
+            self.form_data_list.SetItem(idx, 2,  f"{p.dob:%d-%m-%Y}")
+            self.form_data_list.SetItem(idx, 3, f"{p.nhs:010}")
+            self.form_data_list.SetItem(idx, 4, p.vaccinator)
+        if len(people)==0:
+            for i in range(4):
+                self.form_data_list.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
+        else:
+            for i in range(4):
+                self.form_data_list.SetColumnWidth(i,wx.LIST_AUTOSIZE)
+
+    def update_all_lists(self):
+        self.update_session_list()
+        self.update_scanned_list()
 
     def importSession(self, event):  # wxGlade: MyFrame.<event_handler>
         with wx.FileDialog(self,
@@ -136,40 +158,24 @@ class MyFrame(wx.Frame):
                 return
             paths = fd.GetPaths()
             for path in paths:
-                session = Session.fromFile(path)
-                self.session_people.extend(session.people)
-
-        self.session_people = sorted(self.session_people, key=lambda x:x['time'])
-        self.update_session_list()
+                people = sessions.load_people(path)
+                self.people.extend(people)
+        self.update_all_lists()
 
     def clearData(self, event):  # wxGlade: MyFrame.<event_handler>
         if wx.MessageBox("Clear All Data?",style=wx.OK | wx.CANCEL) == wx.OK:
-            self.session_people = []
-            self.update_session_list()
+            self.people = []
+            self.update_all_lists()
 
     def createForms(self, event):  # wxGlade: MyFrame.<event_handler>
         fd, name = tempfile.mkstemp(suffix=".pdf")
-        # with open(fd, "w") as f:
-        #     f.write(sessions.make_pdf(self.session_people))
         row_count = self.vaccinator_data.GetNumberRows()
         vaccinator_initials = [self.vaccinator_data.GetCellValue(i,0) for i in range(row_count)]
-        pdf = form.PDF(vaccinator_initials, self.session_people)
+        pdf = form.PDF(vaccinator_initials, self.people.filter(status="imported"))
         pdf.save(name)
-        #img = ocr.ocrreader.read_file(name)
-        #print(img)
-        #ocr.ocrreader.find_circles(img)
         webbrowser.open(name)
 
-    def check_matching(self, x, y):
-        success = True
-        for a, b in zip(x,y):
-            if a != b:
-                print(f"Mismatch {a} vs {b}")
-                success = False
-        return success
-
     def loadForms(self, event):  # wxGlade: MyFrame.<event_handler>
-        nhs_map = {p['nhs']: p for p in self.session_people}
         with wx.FileDialog(self,
                            "Open Scanned Forms",
                            wildcard="Image files (*.tif; *.png; *.jpg)|*.tif;*.png;*.jpeg",
@@ -177,52 +183,18 @@ class MyFrame(wx.Frame):
             if fd.ShowModal() == wx.CANCEL:
                 return
             paths = fd.GetPaths()
-            imported_people = []
+            vaccinators = [self.vaccinator_data.GetCellValue(i,1) for i in range(7)]
+            vaccinators = [x for x in vaccinators if x]
             for path in paths:
-                print(f"Working on {path}")
+                ##FIXME check vaccinators...
+                print(f"Scanning {path}")
                 wx.BeginBusyCursor()
-                details = ocr.ocrreader.get_all_details(path)
+                scanned_people = ocr.ocrreader.get_all_details(path, vaccinators)
                 wx.EndBusyCursor()
 
-                for p in details:
-                    print(p)
-                    if p['nhs'] not in nhs_map:
-                        print(f"Person with NHS number: {p['nhs']} has no matching number found")
-                        continue
-                    if nhs_map[p['nhs']]['dob'] == p['dob']:
-                        # we have a match!
-                        p['valid'] = len(p['boxes']) == 1
-                        p['name'] = nhs_map[p['nhs']]['name']
-                        print(f"Adding {p['name']}")
-                        p['time'] = nhs_map[p['nhs']]['time']
-                        if len(p['boxes']) == 1:
-                            p['vaccinator'] = self.vaccinator_data.GetCellValue(p['boxes'][0],1)
-                        elif len(p['boxes']) > 1:
-                            p['vaccinator'] = "Too many boxes ticked"
-                        else:
-                            p['vaccinator'] = "Not enough boxes ticked ?DNA"
-                        imported_people.append(p)
-                    else:
-                        print(f"dob mismatch {p['dob']} vs {nhs_map[p['nhs']]['dob']}")
-            self.add_scanned_people(imported_people)
-
-    def add_scanned_people(self, people):
-        self.form_data_list.DeleteAllItems()
-        for idx, person in enumerate(people):
-            self.form_data_list.InsertItem(idx, person['time'])
-            self.form_data_list.SetItem(idx, 1, person['name'])
-            self.form_data_list.SetItem(idx, 2,  person['dob'].strftime("%d-%m-%Y"))
-            self.form_data_list.SetItem(idx, 3, person['nhs'] or '')
-            self.form_data_list.SetItem(idx, 4, person['vaccinator'])
-            if not (person['valid']):
-                self.form_data_list.SetItemTextColour(idx, "red")
-        #self.session_person_count.SetLabel(str(len(self.session_people)))
-        if len(self.session_people)==0:
-            for i in range(4):
-                self.form_data_list.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
-        else:
-            for i in range(4):
-                self.form_data_list.SetColumnWidth(i,wx.LIST_AUTOSIZE)
+                for p in scanned_people:
+                    self.people.update(p)
+            self.update_all_lists()
 
     def clearScannedData(self, event):  # wxGlade: MyFrame.<event_handler>
         print("Event handler 'clearScannedData' not implemented!")

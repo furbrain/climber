@@ -1,4 +1,8 @@
 Error reporting:
+    Create data flow analysis to make sure that no records are "lost"
+    Backup with test suite
+
+
     When reading score-cards:
         double check initials against vaccinator list
 
@@ -21,3 +25,4 @@ Test Suite:
 
 Logging:
     just have a window to record log entries - helps with debugging
+

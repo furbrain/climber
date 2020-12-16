@@ -1,3 +1,5 @@
+import sys
+
 import dateutil.parser
 import easyocr
 import cv2
@@ -5,6 +7,7 @@ import numpy as np
 
 import form
 import sessions
+from person import Person
 
 DPI=300
 
@@ -103,12 +106,21 @@ class OCR:
 
     def read_dobs(self):
         dobs = self.reader.recognize(self.image, list(self.bounds[1:,2,:]), allowlist="0123456789-", free_list=[], detail=0)
-        dobs = [dateutil.parser.parse(dob, dayfirst=True) for dob in dobs]
         return dobs
 
     def read_nhs_nums(self):
         nhss = self.reader.recognize(self.image, list(self.bounds[1:,3,:]), allowlist="0123456789", free_list=[], detail=0)
         return nhss
+
+    def get_images(self):
+        tls = self.bounds[1:,  0, 0:2] - 5
+        brs = self.bounds[1:, 10, 2:4] + 5
+        results = []
+        for ((top, left), (bottom, right)) in zip(tls, brs):
+            img = self.image[top:bottom, left:right]
+            img = cv2.pyrDown(img)
+            results.append(cv2.imencode(".png", img)[1])
+        return results
 
     def get_vaccinators(self):
         vaccinators = self.reader.recognize(self.image, list(self.bounds[0, 4:, :]), free_list=[], detail=0)
@@ -136,19 +148,34 @@ class OCR:
             cv2.waitKey(0)
         return results
 
-    def get_all_details(self, fname):
+
+
+
+    def get_all_details(self, fname, vaccinators):
         self.read_file(fname)
         self.map_image()
-        times = self.read_times()
         dobs = self.read_dobs()
         nhss = self.read_nhs_nums()
         boxes = self.get_marks()
-        result = [{'time': t, 'dob': d, 'nhs': n, 'boxes': b} for t, d, n, b in zip(times, dobs, nhss, boxes)]
-        return result
+        images = self.get_images()
+        people = [Person(dob=d, nhs=n, status="scanned", image=i.tobytes()) for d, n, i in zip(dobs, nhss, images)]
+        for p, b in zip(people, boxes):
+            if len(b) == 0:
+                p.set_error("No boxes ticked (DNA?)")
+            elif  len(b) == 1:
+                if b[0] >= len(vaccinators):
+                    p.set_error("Invalid box ticked")
+                else:
+                    p.vaccinator = vaccinators[b[0]]
+            else:
+                p.set_error("Too many boxes ticked")
+            print(sys.getsizeof(p.image))
+        return people
 
 
 
 ocrreader = OCR()
 
 if __name__=="__main__":
-    print(ocrreader.get_all_details("completed.png"))
+    ocrreader.get_images()
+    ocrreader.get_all_details("completed.png", ("PU","JC"))

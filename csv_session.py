@@ -1,25 +1,21 @@
 import csv
-import re
-import subprocess
+from person import Person
 
-from bs4 import BeautifulSoup
+FIELDNAMES = ('time', 'name', 'dob', 'nhs')
 
-import sessions
-import dateutil.parser
+def clean_dict(dct):
+    """remove dict entries with None ie not relevant"""
+    keys = list(dct.keys())
+    for key in keys:
+        if key not in FIELDNAMES:
+            del dct[key]
+    return dct
 
-
-class CSVSession(sessions.Session):
-    def __init__(self, fname):
-        super().__init__()
-        self.load(fname)
-
-    def load(self, fname):
-        with open(fname, "r") as f:
-            reader = csv.DictReader(f,['time', 'name', 'dob', 'nhs'])
-            self.people = list(reader)
-            self.people = self.people[1:]
-        for person in self.people:
-            person['dob'] = dateutil.parser.parse(person['dob'])
-            person['nhs'] = str(person['nhs']).replace(" ", "")
-
-        return self.people
+def load(fname):
+    with open(fname, "r") as f:
+        reader = csv.DictReader(f, FIELDNAMES)
+        people = list(reader)
+    people = people[1:]
+    print(people)
+    people = [Person(**clean_dict(p)) for p in people]
+    return people

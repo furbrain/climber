@@ -1,53 +1,45 @@
 import re
 import subprocess
+from typing import List
 
 from bs4 import BeautifulSoup
 
-import sessions
-import dateutil.parser
+from person import Person
+
+DOB_REGEX = r"Date Of Birth: (\S+)"
+NHS_REGEX = r"NHS Number: ([0-9 ]{10,12})"
 
 
-class RTFSession(sessions.Session):
-    DOB_REGEX = r"Date Of Birth: (\S+)"
-    NHS_REGEX = r"NHS Number: ([0-9 ]{10,12})"
+def find_regex(strings, regex):
+    for s in strings:
+        result = re.match(regex, s)
+        if result:
+            return result.group(1)
+    return None
 
-    def __init__(self, fname):
-        super().__init__()
-        self.load(fname)
 
-    @staticmethod
-    def find_regex(strings, regex):
-        for s in strings:
-            result = re.match(regex, s)
-            if result:
-                return result.group(1)
+def get_person(row):
+    cells = [list(x.strings) for x in row.find_all("td")]
+    if len(cells) < 4:
         return None
+    time = cells[0][0]
+    if time == "TIME":  # this is a header row - ignore
+        return None
+    data = ''.join(cells[1])
+    data = data.splitlines()
+    name = data[0]
+    name = re.sub(r"\(.*\)", "", name)
+    dob = find_regex(data, DOB_REGEX)
+    nhs = find_regex(data, NHS_REGEX)
+    p = Person(time=time, name=name, dob=dob, nhs=nhs)
+    return p
 
-    def get_person(self, row):
-        cells = [list(x.strings) for x in row.find_all("td")]
-        if len(cells) < 4:
-            return None
-        time = cells[0][0]
-        if time == "TIME":
-            return None
-        data = ''.join(cells[1])
-        data = data.splitlines()
-        name = data[0]
-        name  = re.sub(r"\(.*\)", "", name)
-        dob = self.find_regex(data, self.DOB_REGEX)
-        dob = dateutil.parser.parse(dob)
-        nhs = self.find_regex(data, self.NHS_REGEX)
-        nhs = nhs.replace(" ","")
-        return {'name': name, 'dob': dob, 'nhs': nhs, 'time': time}
 
-    def load(self, fname):
-        with open(fname, "r") as f:
-            rtf = f.read()
-            html_text = subprocess.run(["unrtf", "--html"], input=rtf, capture_output=True, text=True).stdout
-        doc = BeautifulSoup(html_text, 'html.parser')
-        self.people = []
-        for row in doc.find_all("tr"):
-            person = self.get_person(row)
-            if person is not None:
-                self.people.append(person)
-        return self.people
+def load(fname: str) -> List[Person]:
+    with open(fname, "r") as f:
+        rtf = f.read()
+        html_text = subprocess.run(["unrtf", "--html"], input=rtf, capture_output=True, text=True).stdout
+    doc = BeautifulSoup(html_text, 'html.parser')
+    people = [get_person(row) for row in doc.find_all("tr")]
+    people = [p for p in people if p is not None]
+    return people

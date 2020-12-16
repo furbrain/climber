@@ -1,18 +1,12 @@
-import numpy as np
+from typing import List
 
-from form import PDF
+import rtf_session
+import csv_session
+from person import Person
 
+def load_people(fname: str) -> List[Person]:
+    if fname.lower().endswith(".rtf"):
+        return rtf_session.load(fname)
+    if fname.lower().endswith(".csv"):
+        return csv_session.load(fname)
 
-
-class Session:
-    def __init__(self):
-        self.people = []
-
-    @staticmethod
-    def fromFile(fname: str):
-        from rtf_session import RTFSession
-        from csv_session import CSVSession
-        if fname.lower().endswith(".rtf"):
-            return RTFSession(fname)
-        if fname.lower().endswith(".csv"):
-            return CSVSession(fname)

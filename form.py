@@ -1,6 +1,7 @@
 import numpy as np
 from fpdf import FPDF
 from typing import List
+import person
 
 NUM_ROWS_PER_PDF = 20
 COLUMN_WIDTHS = [15, 55, 25, 30] + [8] * 7
@@ -53,12 +54,12 @@ class PDF(FPDF):
         self.ln(12)
         return bounds
 
-    def add_person(self, person):
+    def add_person(self, p: person.Person):
         contents = [
-                       person['time'],
-                       person['name'][:25],
-                       person['dob'].strftime("%d-%m-%Y"),
-                       person['nhs'] or ""
+                       f"{p.time:%H:%M}",
+                       p.name[:25],
+                       f"{p.dob:%d-%m-%Y}",
+                       f"{p.nhs:010}"
                    ] + [''] * 7
         self.add_line(contents)
 
