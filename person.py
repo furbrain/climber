@@ -39,13 +39,13 @@ def convert_nhs(val):
 
 @attr.s(auto_attribs=True)
 class Person:
-    dob: datetime.date = attr.ib(converter=convert_dob)
+    dob: datetime.date = attr.ib(converter=convert_dob, repr=lambda x: f"{x:%d-%m-%Y}")
     nhs: int = attr.ib(converter=convert_nhs)
-    time: datetime.time = attr.ib(converter=convert_time, default="00:00")
+    time: datetime.time = attr.ib(converter=convert_time, default="00:00", repr=lambda x: f"{x:%H:%M}")
     name: str = ""
     status: str = "imported"
     error_type: str = ""
-    image: bytes = b""
+    image: bytes = attr.ib(default=b"", repr= lambda x: f"{x != b''}")
     vaccinator_initials: str = ""
     vaccinator: str = ""
 
@@ -107,8 +107,10 @@ class Everyone(list):
         if match.dob != person.dob:
             print(f"dob mismatch {match.dob} {person.dob}", type(match.dob), type(person.dob))
             person.set_error(f"DOB mismatch: {match.dob} vs {person.dob}")
-        else:
-            match.status = person.status
+            self.append(person)
+            return
+        match.status = person.status
         match.vaccinator_initials = person.vaccinator_initials
         match.vaccinator = person.vaccinator
         match.image = person.image
+        match.error_type = person.error_type

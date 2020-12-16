@@ -29,16 +29,23 @@ class MyFrame(wx.Frame):
         self.vaccinators = wx.Panel(self.notebook_1, wx.ID_ANY)
         self.vaccinator_data = wx.grid.Grid(self.vaccinators, wx.ID_ANY, size=(1, 1))
         self.make_forms = wx.Panel(self.notebook_1, wx.ID_ANY)
-        self.session_data = wx.ListCtrl(self.make_forms, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
-        self.session_person_count = wx.StaticText(self.make_forms, wx.ID_ANY, "0", style=wx.ALIGN_CENTER)
+        self.imported_data_list = wx.ListCtrl(self.make_forms, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
+        self.imported_count_label = wx.StaticText(self.make_forms, wx.ID_ANY, "0", style=wx.ALIGN_CENTER)
         self.button_1 = wx.Button(self.make_forms, wx.ID_ANY, "Import Session")
         self.button_2 = wx.Button(self.make_forms, wx.ID_ANY, "Clear Data")
         self.button_3 = wx.Button(self.make_forms, wx.ID_ANY, "Create Forms")
         self.notebook_1_pane_3 = wx.Panel(self.notebook_1, wx.ID_ANY)
-        self.form_data_list = wx.ListCtrl(self.notebook_1_pane_3, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
+        self.scanned_data_list = wx.ListCtrl(self.notebook_1_pane_3, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
+        self.scanned_count_label = wx.StaticText(self.notebook_1_pane_3, wx.ID_ANY, "0", style=wx.ALIGN_CENTER)
         self.button_4 = wx.Button(self.notebook_1_pane_3, wx.ID_ANY, "Load Forms")
         self.button_5 = wx.Button(self.notebook_1_pane_3, wx.ID_ANY, "Clear Data")
         self.button_6 = wx.Button(self.notebook_1_pane_3, wx.ID_ANY, "Upload Data")
+        self.notebook_1_pane_1 = wx.Panel(self.notebook_1, wx.ID_ANY)
+        self.error_data_list = wx.ListCtrl(self.notebook_1_pane_1, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
+        self.error_count_label = wx.StaticText(self.notebook_1_pane_1, wx.ID_ANY, "0")
+        self.button_7 = wx.Button(self.notebook_1_pane_1, wx.ID_ANY, "Print Errors")
+        self.notebook_1_pane_2 = wx.Panel(self.notebook_1, wx.ID_ANY)
+        self.log_text = wx.TextCtrl(self.notebook_1_pane_2, wx.ID_ANY, "", style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH)
 
         self.__set_properties()
         self.__do_layout()
@@ -49,6 +56,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.loadForms, self.button_4)
         self.Bind(wx.EVT_BUTTON, self.clearScannedData, self.button_5)
         self.Bind(wx.EVT_BUTTON, self.uploadData, self.button_6)
+        self.Bind(wx.EVT_BUTTON, self.print_errors, self.button_7)
         # end wxGlade
         self.people = person.Everyone()
 
@@ -67,20 +75,29 @@ class MyFrame(wx.Frame):
         self.vaccinator_data.SetRowLabelValue(4, "5")
         self.vaccinator_data.SetRowLabelValue(5, "6")
         self.vaccinator_data.SetRowLabelValue(6, "7")
-        self.session_data.AppendColumn("Time", format=wx.LIST_FORMAT_LEFT, width=-1)
-        self.session_data.AppendColumn("Name", format=wx.LIST_FORMAT_LEFT, width=-1)
-        self.session_data.AppendColumn("Dob", format=wx.LIST_FORMAT_LEFT, width=-1)
-        self.session_data.AppendColumn("NHS Number", format=wx.LIST_FORMAT_LEFT, width=-1)
-        self.form_data_list.AppendColumn("Name", format=wx.LIST_FORMAT_LEFT, width=-1)
-        self.form_data_list.AppendColumn("DoB", format=wx.LIST_FORMAT_LEFT, width=-1)
-        self.form_data_list.AppendColumn("NHS number", format=wx.LIST_FORMAT_LEFT, width=-1)
-        self.form_data_list.AppendColumn("Vaccinator", format=wx.LIST_FORMAT_LEFT, width=-1)
-        self.form_data_list.AppendColumn("Arm", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.imported_data_list.AppendColumn("Time", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.imported_data_list.AppendColumn("Name", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.imported_data_list.AppendColumn("Dob", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.imported_data_list.AppendColumn("NHS Number", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.scanned_data_list.AppendColumn("Time", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.scanned_data_list.AppendColumn("Name", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.scanned_data_list.AppendColumn("DoB", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.scanned_data_list.AppendColumn("NHS number", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.scanned_data_list.AppendColumn("Vaccinator", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.error_data_list.AppendColumn("Time", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.error_data_list.AppendColumn("Name", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.error_data_list.AppendColumn("DoB", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.error_data_list.AppendColumn("NHS number", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.error_data_list.AppendColumn("Error", format=wx.LIST_FORMAT_LEFT, width=-1)
+        self.error_data_list.AppendColumn("Has Image", format=wx.LIST_FORMAT_LEFT, width=-1)
         # end wxGlade
 
     def __do_layout(self):
         # begin wxGlade: MyFrame.__do_layout
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_9 = wx.BoxSizer(wx.VERTICAL)
+        sizer_7 = wx.BoxSizer(wx.VERTICAL)
+        sizer_8 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_4 = wx.BoxSizer(wx.VERTICAL)
         sizer_5 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
@@ -90,64 +107,100 @@ class MyFrame(wx.Frame):
         sizer_6.Add(label_2, 0, wx.ALL, 3)
         sizer_6.Add(self.vaccinator_data, 1, wx.ALL | wx.EXPAND, 3)
         self.vaccinators.SetSizer(sizer_6)
-        sizer_2.Add(self.session_data, 2, wx.ALL | wx.EXPAND, 3)
+        sizer_2.Add(self.imported_data_list, 2, wx.ALL | wx.EXPAND, 3)
         label_1 = wx.StaticText(self.make_forms, wx.ID_ANY, "People:", style=wx.ALIGN_CENTER)
         sizer_3.Add(label_1, 0, wx.ALIGN_CENTER | wx.ALL, 3)
-        sizer_3.Add(self.session_person_count, 2, wx.ALIGN_CENTER | wx.ALL, 3)
+        sizer_3.Add(self.imported_count_label, 2, wx.ALIGN_CENTER | wx.ALL, 3)
         sizer_3.Add(self.button_1, 0, wx.ALL, 3)
         sizer_3.Add(self.button_2, 0, wx.ALL, 3)
         sizer_3.Add(self.button_3, 0, wx.ALL, 3)
         sizer_2.Add(sizer_3, 0, wx.EXPAND, 0)
         self.make_forms.SetSizer(sizer_2)
-        sizer_4.Add(self.form_data_list, 1, wx.EXPAND, 0)
+        sizer_4.Add(self.scanned_data_list, 1, wx.EXPAND, 0)
+        label_4 = wx.StaticText(self.notebook_1_pane_3, wx.ID_ANY, "Scanned People:", style=wx.ALIGN_CENTER)
+        sizer_5.Add(label_4, 0, wx.ALIGN_CENTER | wx.ALL, 3)
+        sizer_5.Add(self.scanned_count_label, 2, wx.ALIGN_CENTER | wx.ALL, 3)
         sizer_5.Add(self.button_4, 0, wx.ALL, 3)
         sizer_5.Add(self.button_5, 0, wx.ALL, 3)
         sizer_5.Add(self.button_6, 0, wx.ALL, 3)
-        sizer_4.Add(sizer_5, 0, wx.ALIGN_RIGHT, 0)
+        sizer_4.Add(sizer_5, 0, wx.EXPAND, 0)
         self.notebook_1_pane_3.SetSizer(sizer_4)
+        sizer_7.Add(self.error_data_list, 1, wx.EXPAND, 0)
+        label_3 = wx.StaticText(self.notebook_1_pane_1, wx.ID_ANY, "Error count: ")
+        sizer_8.Add(label_3, 0, wx.ALIGN_CENTER | wx.ALL, 3)
+        sizer_8.Add(self.error_count_label, 2, wx.ALIGN_CENTER | wx.ALL, 3)
+        sizer_8.Add(self.button_7, 0, wx.ALL, 3)
+        sizer_7.Add(sizer_8, 0, wx.EXPAND, 0)
+        self.notebook_1_pane_1.SetSizer(sizer_7)
+        sizer_9.Add(self.log_text, 1, wx.ALL | wx.EXPAND, 3)
+        self.notebook_1_pane_2.SetSizer(sizer_9)
         self.notebook_1.AddPage(self.vaccinators, "Vaccinators")
         self.notebook_1.AddPage(self.make_forms, "Make forms")
         self.notebook_1.AddPage(self.notebook_1_pane_3, "Read forms")
+        self.notebook_1.AddPage(self.notebook_1_pane_1, "Errors")
+        self.notebook_1.AddPage(self.notebook_1_pane_2, "Logs")
         sizer_1.Add(self.notebook_1, 1, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
         self.Layout()
         # end wxGlade
 
     def update_session_list(self):
-        self.session_data.DeleteAllItems()
+        self.imported_data_list.DeleteAllItems()
         imported = sorted(self.people.filter(status="imported"), key=lambda x: x.time)
         for idx, p in enumerate(imported):
-            self.session_data.InsertItem(idx, f"{p.time:%H:%M}")
-            self.session_data.SetItem(idx, 1, p.name)
-            self.session_data.SetItem(idx, 2,  f"{p.dob:%d-%m-%Y}")
-            self.session_data.SetItem(idx, 3, f"{p.nhs:010}")
-        self.session_person_count.SetLabel(str(len(imported)))
+            self.imported_data_list.InsertItem(idx, f"{p.time:%H:%M}")
+            self.imported_data_list.SetItem(idx, 1, p.name)
+            self.imported_data_list.SetItem(idx, 2,  f"{p.dob:%d-%m-%Y}")
+            self.imported_data_list.SetItem(idx, 3, f"{p.nhs:010}")
+        self.imported_count_label.SetLabel(str(len(imported)))
         if len(imported)==0:
             for i in range(4):
-                self.session_data.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
+                self.imported_data_list.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
         else:
             for i in range(4):
-                self.session_data.SetColumnWidth(i,wx.LIST_AUTOSIZE)
+                self.imported_data_list.SetColumnWidth(i,wx.LIST_AUTOSIZE)
 
     def update_scanned_list(self):
-        self.form_data_list.DeleteAllItems()
+        self.scanned_data_list.DeleteAllItems()
         people = self.people.filter(status="scanned")
         for idx, p in enumerate(people):
-            self.form_data_list.InsertItem(idx, f"{p.time:%H:%M}")
-            self.form_data_list.SetItem(idx, 1, p.name)
-            self.form_data_list.SetItem(idx, 2,  f"{p.dob:%d-%m-%Y}")
-            self.form_data_list.SetItem(idx, 3, f"{p.nhs:010}")
-            self.form_data_list.SetItem(idx, 4, p.vaccinator)
+            self.scanned_data_list.InsertItem(idx, f"{p.time:%H:%M}")
+            self.scanned_data_list.SetItem(idx, 1, p.name)
+            self.scanned_data_list.SetItem(idx, 2,  f"{p.dob:%d-%m-%Y}")
+            self.scanned_data_list.SetItem(idx, 3, f"{p.nhs:010}")
+            self.scanned_data_list.SetItem(idx, 4, p.vaccinator)
         if len(people)==0:
             for i in range(4):
-                self.form_data_list.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
+                self.scanned_data_list.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
         else:
             for i in range(4):
-                self.form_data_list.SetColumnWidth(i,wx.LIST_AUTOSIZE)
+                self.scanned_data_list.SetColumnWidth(i,wx.LIST_AUTOSIZE)
+        self.scanned_count_label.SetLabel(str(len(people)))
+
+    def update_error_list(self):
+        self.error_data_list.DeleteAllItems()
+        errors = self.people.filter(status="error")
+        for e in errors:
+            print(e)
+        for idx, p in enumerate(errors):
+            self.error_data_list.InsertItem(idx, f"{p.time:%H:%M}")
+            self.error_data_list.SetItem(idx, 1, p.name)
+            self.error_data_list.SetItem(idx, 2, f"{p.dob:%d-%m-%Y}")
+            self.error_data_list.SetItem(idx, 3, f"{p.nhs:010}")
+            self.error_data_list.SetItem(idx, 4, p.error_type)
+            self.error_data_list.SetItem(idx, 5, f"{p.image!=b''}")
+        if len(errors) == 0:
+            for i in range(4):
+                self.error_data_list.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
+        else:
+            for i in range(4):
+                self.error_data_list.SetColumnWidth(i, wx.LIST_AUTOSIZE)
+        self.error_count_label.SetLabel(str(len(errors)))
 
     def update_all_lists(self):
         self.update_session_list()
         self.update_scanned_list()
+        self.update_error_list()
 
     def importSession(self, event):  # wxGlade: MyFrame.<event_handler>
         with wx.FileDialog(self,
@@ -205,6 +258,9 @@ class MyFrame(wx.Frame):
         print("Event handler 'uploadData' not implemented!")
         event.Skip()
 
+    def print_errors(self, event):  # wxGlade: MyFrame.<event_handler>
+        print("Event handler 'print_errors' not implemented!")
+        event.Skip()
 # end of class MyFrame
 
 class MyApp(wx.App):
