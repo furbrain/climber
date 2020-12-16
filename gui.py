@@ -19,6 +19,18 @@ import sessions
 import webbrowser
 import ocr
 
+
+def resize_list_ctrl(ctrl):
+    width = ctrl.ColumnCount
+    length = ctrl.ItemCount
+    if length == 0:
+        resize_by = wx.LIST_AUTOSIZE_USEHEADER
+    else:
+        resize_by = wx.LIST_AUTOSIZE
+    for i in range(width):
+        ctrl.SetColumnWidth(i, resize_by)
+
+
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
         # begin wxGlade: MyFrame.__init__
@@ -152,13 +164,8 @@ class MyFrame(wx.Frame):
             self.imported_data_list.SetItem(idx, 1, p.name)
             self.imported_data_list.SetItem(idx, 2,  f"{p.dob:%d-%m-%Y}")
             self.imported_data_list.SetItem(idx, 3, f"{p.nhs:010}")
+        resize_list_ctrl(self.imported_data_list)
         self.imported_count_label.SetLabel(str(len(imported)))
-        if len(imported)==0:
-            for i in range(4):
-                self.imported_data_list.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
-        else:
-            for i in range(4):
-                self.imported_data_list.SetColumnWidth(i,wx.LIST_AUTOSIZE)
 
     def update_scanned_list(self):
         self.scanned_data_list.DeleteAllItems()
@@ -169,12 +176,7 @@ class MyFrame(wx.Frame):
             self.scanned_data_list.SetItem(idx, 2,  f"{p.dob:%d-%m-%Y}")
             self.scanned_data_list.SetItem(idx, 3, f"{p.nhs:010}")
             self.scanned_data_list.SetItem(idx, 4, p.vaccinator)
-        if len(people)==0:
-            for i in range(4):
-                self.scanned_data_list.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
-        else:
-            for i in range(4):
-                self.scanned_data_list.SetColumnWidth(i,wx.LIST_AUTOSIZE)
+        resize_list_ctrl(self.scanned_data_list)
         self.scanned_count_label.SetLabel(str(len(people)))
 
     def update_error_list(self):
@@ -189,12 +191,7 @@ class MyFrame(wx.Frame):
             self.error_data_list.SetItem(idx, 3, f"{p.nhs:010}")
             self.error_data_list.SetItem(idx, 4, p.error_type)
             self.error_data_list.SetItem(idx, 5, f"{p.image!=b''}")
-        if len(errors) == 0:
-            for i in range(4):
-                self.error_data_list.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
-        else:
-            for i in range(4):
-                self.error_data_list.SetColumnWidth(i, wx.LIST_AUTOSIZE)
+        resize_list_ctrl(self.error_data_list)
         self.error_count_label.SetLabel(str(len(errors)))
 
     def update_all_lists(self):
