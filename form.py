@@ -87,3 +87,7 @@ class PDF(FPDF):
         bounds = [pdf.add_line() for i in range(NUM_ROWS_PER_PDF + 1)]
         bounds = np.array(bounds, dtype="float64")
         return bounds
+
+if __name__=="__main__":
+    f = PDF([], [])
+    f.save("blank.pdf")

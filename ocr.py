@@ -1,26 +1,26 @@
-import sys
-
-import dateutil.parser
 import easyocr
 import cv2
 import numpy as np
 
 import form
-import sessions
 from person import Person
 
 DPI=300
 
 class OCR:
     def __init__(self):
-        cv2.namedWindow("main", cv2.WINDOW_NORMAL)
         self.reader = easyocr.Reader(['en'])
         self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
         self.bounds = None
-        self.read_file("blankform.tif")
+        self.read_file("blank.jpg")
         self.target_size = tuple(reversed(self.image.shape))
         self.reference_points = self.find_circles()
         self.bounds = self.get_bounds()
+        self.display = False
+
+    def set_display(self):
+        self.display = True
+        cv2.namedWindow("main", cv2.WINDOW_NORMAL)
 
     def point_angle(self, point):
         x = point[0]-1500
@@ -31,15 +31,15 @@ class OCR:
         self.image = cv2.imread(fname, cv2.IMREAD_GRAYSCALE)
         return self.image
 
-    def map_image(self, display=False):
-        if display:
+    def map_image(self):
+        if self.display:
             cv2.imshow("main", self.image)
             cv2.waitKey(0)
         self.image_points = self.find_circles()
         h = cv2.getPerspectiveTransform(self.image_points, self.reference_points)
         self.image = cv2.warpPerspective(self.image, h, self.target_size)
         self.thresholded = cv2.warpPerspective(self.thresholded, h, self.target_size)
-        if display:
+        if self.display:
             results = self.draw_bounds()
             cv2.imwrite("results.png", results)
             cv2.imshow("main", results)
@@ -126,7 +126,7 @@ class OCR:
         vaccinators = self.reader.recognize(self.image, list(self.bounds[0, 4:, :]), free_list=[], detail=0)
         return vaccinators
 
-    def get_marks(self, display=False):
+    def get_marks(self):
         results = []
         copy = cv2.cvtColor(self.thresholded, cv2.COLOR_GRAY2BGR)
         for row in self.bounds[1:, 4:, :]:
@@ -137,13 +137,13 @@ class OCR:
                 b = (rect[1], rect[3])
                 if found:
                     indices.append(i)
-                    if display:
+                    if self.display:
                         cv2.rectangle(copy, pt1=a, pt2=b, color=(0, 255, 0), thickness=3)
                 else:
-                    if display:
+                    if self.display:
                         cv2.rectangle(copy, pt1=a, pt2=b, color=(0, 0, 255), thickness=3)
             results.append(indices)
-        if display:
+        if self.display:
             cv2.imshow("main", copy)
             cv2.waitKey(0)
         return results
@@ -158,7 +158,7 @@ class OCR:
         nhss = self.read_nhs_nums()
         boxes = self.get_marks()
         images = self.get_images()
-        people = [Person(dob=d, nhs=n, status="scanned", image=i.tobytes()) for d, n, i in zip(dobs, nhss, images)]
+        people = [Person(dob=d, nhs=n, status="scanned", image=i.tobytes()) for d, n, i in zip(dobs, nhss, images) if d != "" or n != ""]
         for p, b in zip(people, boxes):
             if len(b) == 0:
                 p.set_error("No boxes ticked (DNA?)")
@@ -169,7 +169,6 @@ class OCR:
                     p.vaccinator = vaccinators[b[0]]
             else:
                 p.set_error("Too many boxes ticked")
-            print(sys.getsizeof(p.image))
         return people
 
 
@@ -178,4 +177,4 @@ ocrreader = OCR()
 
 if __name__=="__main__":
     ocrreader.get_images()
-    ocrreader.get_all_details("completed.png", ("PU","JC"))
+    ocrreader.get_all_details("completed-1.jpg", ("PU","JC"))

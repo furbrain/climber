@@ -4,6 +4,7 @@ from typing import Union, List
 import dateutil.parser
 import attr
 
+
 def convert_time(val):
     if isinstance(val, datetime.time):
         return val
@@ -19,7 +20,6 @@ def convert_dob(val):
         return val
     try:
         result = dateutil.parser.parse(val, dayfirst=True).date()
-        print(f"{val} -> {result:%d-%m-%Y}")
     except ValueError:
         result = None
     return result
@@ -61,7 +61,7 @@ class Person:
 
     @nhs.validator
     def _nhs_validator(self, attribute, value):
-        if value == -1:
+        if value <= 0:
             self.set_error("Invalid NHS number")
         if value >= 10000000000:
             self.set_error("Invalid NHS number")
@@ -83,7 +83,7 @@ class Everyone(list):
 
     def get_by_nhs(self, nhs: int) -> Union[None, Person]:
         results = self.filter(nhs=nhs)
-        if len(results)>=1:
+        if len(results) >= 1:
             return results[0]
         else:
             return None
@@ -101,7 +101,6 @@ class Everyone(list):
     def update(self, person: Person):
         match = self.get_by_nhs(person.nhs)
         if match is None:
-            print("nhs num not found")
             person.set_error("NHS number not found")
             self.append(person)
             return

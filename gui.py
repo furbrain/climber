@@ -154,7 +154,7 @@ class MyFrame(wx.Frame):
                            "Open Session files",
                            wildcard="Session files (*.rtf; *.csv)|*.rtf;*.csv",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE) as fd:
-            if fd.ShowModal() == wx.CANCEL:
+            if fd.ShowModal() != wx.ID_OK:
                 return
             paths = fd.GetPaths()
             for path in paths:
@@ -178,11 +178,12 @@ class MyFrame(wx.Frame):
     def loadForms(self, event):  # wxGlade: MyFrame.<event_handler>
         with wx.FileDialog(self,
                            "Open Scanned Forms",
-                           wildcard="Image files (*.tif; *.png; *.jpg)|*.tif;*.png;*.jpeg",
+                           wildcard="Image files (*.tif; *.png; *.jpeg; *.jpg)|*.tif;*.png;*.jpeg;*.jpg",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE) as fd:
-            if fd.ShowModal() == wx.CANCEL:
+            if fd.ShowModal() != wx.ID_OK:
                 return
             paths = fd.GetPaths()
+            print(paths)
             vaccinators = [self.vaccinator_data.GetCellValue(i,1) for i in range(7)]
             vaccinators = [x for x in vaccinators if x]
             for path in paths:
