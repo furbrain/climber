@@ -86,7 +86,7 @@ class OCR:
 
 
     def get_bounds(self):
-        bounds = form.PDF.get_bounds()
+        bounds = form.DataEntryPDF.get_bounds()
         bounds[:, :, 0:2] += 0.5
         bounds[:, :, 2:4] -= 0.5
         boxes = bounds.copy()
@@ -113,11 +113,11 @@ class OCR:
         return nhss
 
     def get_images(self):
-        tls = self.bounds[1:,  0, 0:2] - 5
-        brs = self.bounds[1:, 10, 2:4] + 5
+        tls = self.bounds[1:,  0, 0:3:2] - 5
+        brs = self.bounds[1:, 10, 1:4:2] + 5
         results = []
-        for ((top, left), (bottom, right)) in zip(tls, brs):
-            img = self.image[top:bottom, left:right]
+        for ((x1, y1), (x2, y2)) in zip(tls, brs):
+            img = self.image[y1:y2, x1:x2]
             img = cv2.pyrDown(img)
             results.append(cv2.imencode(".png", img)[1])
         return results

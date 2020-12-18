@@ -4,6 +4,8 @@ from typing import Union, List
 import dateutil.parser
 import attr
 
+DEFAULT_HEADINGS = ('time', 'name', 'dob', 'nhs')
+
 
 def convert_time(val):
     if isinstance(val, datetime.time):
@@ -71,6 +73,19 @@ class Person:
         self.error_type = reason
 
 
+    def get_text(self, heading):
+        field = getattr(attr.fields(type(self)),heading)
+        var = getattr(self, heading)
+        if isinstance(field.repr, bool):
+            return str(var)
+        else:
+            return field.repr(var)
+
+    def get_texts(self, headings = DEFAULT_HEADINGS):
+        """Get a list of strings for each heading"""
+        return[self.get_text(heading) for heading in headings]
+
+
 class Everyone(list):
     def __init__(self):
         super().__init__()
@@ -114,3 +129,4 @@ class Everyone(list):
         match.vaccinator = person.vaccinator
         match.image = person.image
         match.error_type = person.error_type
+

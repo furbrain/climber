@@ -1,13 +1,18 @@
+import tempfile
+from io import BytesIO
+from itertools import groupby
+
 import numpy as np
 from fpdf import FPDF
 from typing import List
 import person
+from tfile import TFile
 
 NUM_ROWS_PER_PDF = 20
 COLUMN_WIDTHS = [15, 55, 25, 30] + [8] * 7
 
 
-class PDF(FPDF):
+class DataEntryPDF(FPDF):
     def __init__(self, vaccinators, people):
         super().__init__(orientation="P", unit="mm", format="A4")
         # add some decorations here...
@@ -81,13 +86,58 @@ class PDF(FPDF):
 
     @staticmethod
     def get_bounds():
-        pdf = PDF([], [])
+        pdf = DataEntryPDF([], [])
         pdf.new_page()
         pdf.set_xy(pdf.l_margin, pdf.t_margin)
         bounds = [pdf.add_line() for i in range(NUM_ROWS_PER_PDF + 1)]
         bounds = np.array(bounds, dtype="float64")
         return bounds
 
-if __name__=="__main__":
-    f = PDF([], [])
+
+class ErrorReportPDF(FPDF):
+    LINE_SPACING = 9
+
+    def __init__(self, people: person.Person):
+        super().__init__(orientation="P", unit="mm", format="A4")
+        self.set_font("Arial", "B", 10)
+        # add some decorations here...
+        self.add_page()
+        self.set_top_margin(25)
+        self.set_left_margin(15)
+        self.set_xy(self.l_margin, self.t_margin)
+        self.add_groups(people)
+
+    def load_resource(self, reason, filename):
+        if reason == "image":
+            return BytesIO(filename)
+        else:
+            return super().load_resource(reason, filename)
+
+    def print_line(self, text, image=None):
+        if image is None:
+            self.cell(w=0, h=9, txt=text, ln=1)
+        else:
+            fname = TFile.get(suffix=".png")
+            with open(fname, "wb") as f:
+                f.write(image)
+            self.cell(w=self.w // 2, h=9, txt=text)
+            self.image(fname, w=self.w //2, h=9)
+            self.ln()
+
+    def print_group(self, reason, people: List[person.Person]):
+        self.set_font("Arial", "B", 12)
+        self.print_line(reason)
+        self.set_font("Arial", "B", 10)
+        for p in people:
+            text = ' '.join(p.get_texts())
+            self.print_line(text, p.image)
+
+    def add_groups(self, people: person.Person):
+        for error_reason, p in groupby(people, key=lambda x: x.error_type):
+            self.print_group(error_reason, p)
+            pass
+
+
+if __name__ == "__main__":
+    f = DataEntryPDF([], [])
     f.save("blank.pdf")
