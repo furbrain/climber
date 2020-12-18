@@ -253,7 +253,7 @@ class MyFrame(wx.Frame):
         errors = self.people.filter(status="error")
         report = ErrorReportPDF(errors)
         fname = TFile.get(suffix=".pdf")
-        report.output(fname,"F")
+        report.save(fname)
         webbrowser.open(fname)
 # end of class MyFrame
 

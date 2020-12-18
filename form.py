@@ -1,10 +1,11 @@
 import tempfile
 from io import BytesIO
 from itertools import groupby
+from operator import attrgetter
 
 import numpy as np
 from fpdf import FPDF
-from typing import List
+from typing import List, Sequence
 import person
 from tfile import TFile
 
@@ -60,12 +61,7 @@ class DataEntryPDF(FPDF):
         return bounds
 
     def add_person(self, p: person.Person):
-        contents = [
-                       f"{p.time:%H:%M}",
-                       p.name[:25],
-                       f"{p.dob:%d-%m-%Y}",
-                       f"{p.nhs:010}"
-                   ] + [''] * 7
+        contents = p.get_texts() + [''] * 7
         self.add_line(contents)
 
     def add_people(self, people):
@@ -97,7 +93,7 @@ class DataEntryPDF(FPDF):
 class ErrorReportPDF(FPDF):
     LINE_SPACING = 9
 
-    def __init__(self, people: person.Person):
+    def __init__(self, people: Sequence[person.Person]):
         super().__init__(orientation="P", unit="mm", format="A4")
         self.set_font("Arial", "B", 10)
         # add some decorations here...
@@ -107,35 +103,33 @@ class ErrorReportPDF(FPDF):
         self.set_xy(self.l_margin, self.t_margin)
         self.add_groups(people)
 
-    def load_resource(self, reason, filename):
-        if reason == "image":
-            return BytesIO(filename)
-        else:
-            return super().load_resource(reason, filename)
-
     def print_line(self, text, image=None):
         if image is None:
-            self.cell(w=0, h=9, txt=text, ln=1)
+            self.cell(w=0, h=5, txt=text, ln=1)
         else:
             fname = TFile.get(suffix=".png")
             with open(fname, "wb") as f:
                 f.write(image)
-            self.cell(w=self.w // 2, h=9, txt=text)
-            self.image(fname, w=self.w //2, h=9)
+            self.cell(w=self.w // 2-self.l_margin, h=5, txt=text)
+            self.image(fname, w=self.w //2 - self.r_margin, h=5)
             self.ln()
 
-    def print_group(self, reason, people: List[person.Person]):
+    def print_group(self, reason, people: Sequence[person.Person]):
         self.set_font("Arial", "B", 12)
         self.print_line(reason)
-        self.set_font("Arial", "B", 10)
+        self.set_font("Arial", "", 10)
         for p in people:
             text = ' '.join(p.get_texts())
             self.print_line(text, p.image)
 
-    def add_groups(self, people: person.Person):
-        for error_reason, p in groupby(people, key=lambda x: x.error_type):
+    def add_groups(self, people: Sequence[person.Person]):
+        people = sorted(people, key=attrgetter("error_type"))
+        for error_reason, p in groupby(people, key=attrgetter("error_type")):
             self.print_group(error_reason, p)
-            pass
+
+    def save(self, fname):
+        self.output(fname, dest="F")
+
 
 
 if __name__ == "__main__":

@@ -38,11 +38,16 @@ def convert_nhs(val):
         val = -1
     return val
 
+def repr_nhs(val):
+    val = f"{val:010}"
+    val = f"{val[0:3]} {val[3:6]} {val[6:10]}"
+    return val
+
 
 @attr.s(auto_attribs=True)
 class Person:
     dob: datetime.date = attr.ib(converter=convert_dob, repr=lambda x: f"{x:%d-%m-%Y}")
-    nhs: int = attr.ib(converter=convert_nhs)
+    nhs: int = attr.ib(converter=convert_nhs, repr=repr_nhs)
     time: datetime.time = attr.ib(converter=convert_time, default="00:00", repr=lambda x: f"{x:%H:%M}")
     name: str = ""
     status: str = "imported"
