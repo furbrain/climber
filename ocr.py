@@ -5,27 +5,32 @@ import numpy as np
 import form
 from person import Person
 
-DPI=300
+DPI = 300
+
 
 class OCR:
     def __init__(self):
         self.reader = easyocr.Reader(['en'])
-        self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+        self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
         self.bounds = None
         self.read_file("blank.jpg")
         self.target_size = tuple(reversed(self.image.shape))
         self.reference_points = self.find_circles()
         self.bounds = self.get_bounds()
         self.display = False
+        self.image = None
+        self.image_points = None
+        self.thresholded = None
 
     def set_display(self):
         self.display = True
         cv2.namedWindow("main", cv2.WINDOW_NORMAL)
 
-    def point_angle(self, point):
-        x = point[0]-1500
-        y = point[1]-1500
-        return np.arctan2(x,y)
+    @staticmethod
+    def point_angle(point):
+        x = point[0] - 1500
+        y = point[1] - 1500
+        return np.arctan2(x, y)
 
     def read_file(self, fname):
         self.image = cv2.imread(fname, cv2.IMREAD_GRAYSCALE)
@@ -46,9 +51,9 @@ class OCR:
             cv2.waitKey(0)
 
     @staticmethod
-    def isCircle(contour):
+    def is_circle(contour):
         area = cv2.contourArea(contour)
-        return area > 1000 and area < 100000
+        return 1000 < area < 100000
 
     @staticmethod
     def get_centroid(contour):
@@ -64,16 +69,15 @@ class OCR:
             image,
             cv2.RETR_LIST,
             cv2.CHAIN_APPROX_SIMPLE)
-        centroids = [self.get_centroid(c) for c in contours if self.isCircle(c)]
+        centroids = [self.get_centroid(c) for c in contours if self.is_circle(c)]
         centroids = sorted(centroids, key=self.point_angle)
-        assert(len(centroids)==4)
+        assert (len(centroids) == 4)
         return np.array(centroids, dtype="float32")
 
     def has_mark(self, rect):
-        test_area = self.thresholded[rect[2]:rect[3],rect[0]:rect[1]]
-        dark_prop = 1 - (np.count_nonzero(test_area) / ((rect[1]-rect[0]) * (rect[3]-rect[2])))
+        test_area = self.thresholded[rect[2]:rect[3], rect[0]:rect[1]]
+        dark_prop = 1 - (np.count_nonzero(test_area) / ((rect[1] - rect[0]) * (rect[3] - rect[2])))
         return dark_prop > 0.025
-
 
     def draw_bounds(self):
         copy = cv2.cvtColor(self.image, cv2.COLOR_GRAY2BGR)
@@ -84,8 +88,8 @@ class OCR:
                 cv2.rectangle(copy, pt1=a, pt2=b, color=(0, 0, 255))
         return copy
 
-
-    def get_bounds(self):
+    @staticmethod
+    def get_bounds():
         bounds = form.DataEntryPDF.get_bounds()
         bounds[:, :, 0:2] += 0.5
         bounds[:, :, 2:4] -= 0.5
@@ -97,23 +101,26 @@ class OCR:
         return bounds
 
     def read_times(self):
-        times = self.reader.recognize(self.image, list(self.bounds[1:,0,:]), free_list=[], allowlist="0123456789:", detail=0)
+        times = self.reader.recognize(self.image, list(self.bounds[1:, 0, :]), free_list=[], allowlist="0123456789:",
+                                      detail=0)
         return times
 
     def read_names(self):
-        names = self.reader.recognize(self.image, list(self.bounds[1:,1,:]), free_list=[], detail=0)
+        names = self.reader.recognize(self.image, list(self.bounds[1:, 1, :]), free_list=[], detail=0)
         return names
 
     def read_dobs(self):
-        dobs = self.reader.recognize(self.image, list(self.bounds[1:,2,:]), allowlist="0123456789-", free_list=[], detail=0)
+        dobs = self.reader.recognize(self.image, list(self.bounds[1:, 2, :]), allowlist="0123456789-", free_list=[],
+                                     detail=0)
         return dobs
 
     def read_nhs_nums(self):
-        nhss = self.reader.recognize(self.image, list(self.bounds[1:,3,:]), allowlist="0123456789", free_list=[], detail=0)
+        nhss = self.reader.recognize(self.image, list(self.bounds[1:, 3, :]), allowlist="0123456789", free_list=[],
+                                     detail=0)
         return nhss
 
     def get_images(self):
-        tls = self.bounds[1:,  0, 0:3:2] - 5
+        tls = self.bounds[1:, 0, 0:3:2] - 5
         brs = self.bounds[1:, 10, 1:4:2] + 5
         results = []
         for ((x1, y1), (x2, y2)) in zip(tls, brs):
@@ -148,9 +155,6 @@ class OCR:
             cv2.waitKey(0)
         return results
 
-
-
-
     def get_all_details(self, fname, vaccinators):
         self.read_file(fname)
         self.map_image()
@@ -158,11 +162,12 @@ class OCR:
         nhss = self.read_nhs_nums()
         boxes = self.get_marks()
         images = self.get_images()
-        people = [Person(dob=d, nhs=n, status="scanned", image=i.tobytes()) for d, n, i in zip(dobs, nhss, images) if d != "" or n != ""]
+        people = [Person(dob=d, nhs=n, status="scanned", image=i.tobytes()) for d, n, i in zip(dobs, nhss, images) if
+                  d != "" or n != ""]
         for p, b in zip(people, boxes):
             if len(b) == 0:
                 p.set_error("No boxes ticked (DNA?)")
-            elif  len(b) == 1:
+            elif len(b) == 1:
                 if b[0] >= len(vaccinators):
                     p.set_error("Invalid box ticked")
                 else:
@@ -172,9 +177,4 @@ class OCR:
         return people
 
 
-
 ocrreader = OCR()
-
-if __name__=="__main__":
-    ocrreader.get_images()
-    ocrreader.get_all_details("completed-1.jpg", ("PU","JC"))

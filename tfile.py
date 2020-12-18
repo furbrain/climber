@@ -5,8 +5,8 @@ import atexit
 
 
 class TFile:
-    """This class implements a supply of securely generated temporary filenames, which will be deleted on program exit"""
-    filelist: List["TFile"] = []
+    """This class generates secure temporary filenames, which will be deleted on program exit"""
+    filelist: List[str] = []
 
     @classmethod
     def get(cls, suffix=""):

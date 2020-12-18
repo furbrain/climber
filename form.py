@@ -1,11 +1,10 @@
-import tempfile
-from io import BytesIO
 from itertools import groupby
 from operator import attrgetter
+from typing import List, Sequence
 
 import numpy as np
 from fpdf import FPDF
-from typing import List, Sequence
+
 import person
 from tfile import TFile
 
@@ -67,8 +66,8 @@ class DataEntryPDF(FPDF):
     def add_people(self, people):
         self.new_page()
         person_count = 0
-        for person in people:
-            self.add_person(person)
+        for p in people:
+            self.add_person(p)
             person_count += 1
             if person_count >= NUM_ROWS_PER_PDF:
                 self.new_page()
@@ -85,6 +84,7 @@ class DataEntryPDF(FPDF):
         pdf = DataEntryPDF([], [])
         pdf.new_page()
         pdf.set_xy(pdf.l_margin, pdf.t_margin)
+        # noinspection PyUnusedLocal
         bounds = [pdf.add_line() for i in range(NUM_ROWS_PER_PDF + 1)]
         bounds = np.array(bounds, dtype="float64")
         return bounds
@@ -110,8 +110,8 @@ class ErrorReportPDF(FPDF):
             fname = TFile.get(suffix=".png")
             with open(fname, "wb") as f:
                 f.write(image)
-            self.cell(w=self.w // 2-self.l_margin, h=5, txt=text)
-            self.image(fname, w=self.w //2 - self.r_margin, h=5)
+            self.cell(w=self.w // 2 - self.l_margin, h=5, txt=text)
+            self.image(fname, w=self.w // 2 - self.r_margin, h=5)
             self.ln()
 
     def print_group(self, reason, people: Sequence[person.Person]):
@@ -131,7 +131,6 @@ class ErrorReportPDF(FPDF):
         self.output(fname, dest="F")
 
 
-
 if __name__ == "__main__":
-    f = DataEntryPDF([], [])
-    f.save("blank.pdf")
+    data_entry_form = DataEntryPDF([], [])
+    data_entry_form.save("blank.pdf")

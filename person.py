@@ -38,12 +38,14 @@ def convert_nhs(val):
         val = -1
     return val
 
+
 def repr_nhs(val):
     val = f"{val:010}"
     val = f"{val[0:3]} {val[3:6]} {val[6:10]}"
     return val
 
 
+# noinspection PyUnresolvedReferences,PyUnusedLocal
 @attr.s(auto_attribs=True)
 class Person:
     dob: datetime.date = attr.ib(converter=convert_dob, repr=lambda x: f"{x:%d-%m-%Y}")
@@ -52,7 +54,7 @@ class Person:
     name: str = ""
     status: str = "imported"
     error_type: str = ""
-    image: bytes = attr.ib(default=b"", repr= lambda x: f"{x != b''}")
+    image: bytes = attr.ib(default=b"", repr=lambda x: f"{x != b''}")
     vaccinator_initials: str = ""
     vaccinator: str = ""
 
@@ -77,18 +79,17 @@ class Person:
         self.status = "error"
         self.error_type = reason
 
-
     def get_text(self, heading):
-        field = getattr(attr.fields(type(self)),heading)
+        field = getattr(attr.fields(type(self)), heading)
         var = getattr(self, heading)
         if isinstance(field.repr, bool):
             return str(var)
         else:
             return field.repr(var)
 
-    def get_texts(self, headings = DEFAULT_HEADINGS):
+    def get_texts(self, headings=DEFAULT_HEADINGS):
         """Get a list of strings for each heading"""
-        return[self.get_text(heading) for heading in headings]
+        return [self.get_text(heading) for heading in headings]
 
 
 class Everyone(list):
@@ -134,4 +135,3 @@ class Everyone(list):
         match.vaccinator = person.vaccinator
         match.image = person.image
         match.error_type = person.error_type
-

@@ -38,6 +38,7 @@ def get_person(row):
 def load(fname: str) -> List[Person]:
     with open(fname, "r") as f:
         rtf = f.read()
+        # noinspection SpellCheckingInspection
         html_text = subprocess.run(["unrtf", "--html"], input=rtf, capture_output=True, text=True).stdout
     doc = BeautifulSoup(html_text, 'html.parser')
     people = [get_person(row) for row in doc.find_all("tr")]

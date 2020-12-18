@@ -3,32 +3,32 @@ Software to automate entry of vaccination data into Pinnacle/Outcomes4Health
 
 ##Workflow
 This software allows you to print out a list of patients, from your preferred clinical system.
-As the patients are vaccinated, your clinic co-ordinator records in pen which vaccinator
+As the patients are vaccinated, your clinic coordinator records with a pen which vaccinator
 has given them a vaccine. The completed forms are then scanned, and the data is entered into Pinnacle.
 
 ##Caveats
 The software will record every patient as receiving their vaccine in the left arm, and giving their own consent. Your
 vaccinators will need to keep a list of patients who received their vaccine in
-other sites (eg right arm) and those whose consent was recorded for best interests.
+other sites (e.g. right arm), and those whose consent was recorded for best interests.
 Any patient who ends up not getting vaccinated must also be recorded.
 
 These "exceptions" can then be adjusted after the main data entry process.
 
 ##Instructions
 ###Set up vaccinators
-On the first tab (labelled "Vaccinators") enter initials for each vaccinator, and their name *as it appears in pinnacle*.
+On the first tab (labelled "Vaccinators") enter initials for each vaccinator, and their name *as it appears in Pinnacle*.
 There is a limit of seven vaccinators
 
 ###Import patient data from Emis
 ***FIXME***
-You will need to ensure that under Appointments config you have selected DOB, NHS number and name in patient details
-For each vaccination session on EMIS, right click on the session header and select
+You will need to ensure that under "Appointments" config you have selected DOB, NHS number and name in patient details
+For each vaccination session on Emis, right click on the session header and select
 `print include patient details`
 Save the patient lists on your computer
 Do this for each session you are running concurrently.
 From the second tab (labelled "Make Forms"), click "Import Session", and choose all the rtf files you have previously saved
 
-###Import patient data from SystmOne
+###Import patient data from SystemOne
 Not sure here, you need to generate a csv with following columns:
 * Time of appointment
 * Patient Name
@@ -42,7 +42,7 @@ Click "Create Forms", a pdf with all the appointments will be generated.
 Print this out on A4 Paper, make sure that all the circles at the corners print correctly
 
 ###Vaccinate
-As patients arrive and you direct them to a vaccinator, put a cross or other
+As patients arrive, and you direct them to a vaccinator, put a cross or other
 mark in the box corresponding to that vaccinator (their initials are at the top of the form)
 If you make a mistake put a mark in another box and this entry will be rejected, and will need to be 
 entered manually.
