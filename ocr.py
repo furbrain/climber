@@ -53,7 +53,7 @@ class OCR:
     @staticmethod
     def is_circle(contour):
         area = cv2.contourArea(contour)
-        return 1000 < area < 100000
+        return 3000 < area < 100000
 
     @staticmethod
     def get_centroid(contour):
@@ -65,13 +65,17 @@ class OCR:
         ret, self.thresholded = cv2.threshold(self.image, 160, 255, cv2.THRESH_BINARY)
         image = cv2.dilate(self.thresholded, kernel=self.kernel, iterations=2)
         image = cv2.erode(image, kernel=self.kernel, iterations=2)
+        # blank out uninteresting bits of image...
+        image[600:-600, :] = 255
+        image[:, 600:-600] = 255
         contours, hierarchy = cv2.findContours(
             image,
             cv2.RETR_LIST,
             cv2.CHAIN_APPROX_SIMPLE)
         centroids = [self.get_centroid(c) for c in contours if self.is_circle(c)]
         centroids = sorted(centroids, key=self.point_angle)
-        assert (len(centroids) == 4)
+        if len(centroids)!=4:
+            raise ValueError("Number of circles found incorrect: %d (" % len(centroids))
         return np.array(centroids, dtype="float32")
 
     def has_mark(self, rect):
