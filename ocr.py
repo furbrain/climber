@@ -10,6 +10,7 @@ DPI = 300
 
 class OCR:
     instance = None
+
     def __init__(self):
         self.reader = easyocr.Reader(['en'])
         self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
@@ -75,7 +76,7 @@ class OCR:
             cv2.CHAIN_APPROX_SIMPLE)
         centroids = [self.get_centroid(c) for c in contours if self.is_circle(c)]
         centroids = sorted(centroids, key=self.point_angle)
-        if len(centroids)!=4:
+        if len(centroids) != 4:
             raise ValueError("Number of circles found incorrect: %d (" % len(centroids))
         return np.array(centroids, dtype="float32")
 

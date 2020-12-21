@@ -49,8 +49,9 @@ class Uploader:
 
 
 class TestUploader(Uploader):
-    valid_vaccinators=["Underwood", "Cobley"]
+    valid_vaccinators = ["Underwood", "Cobley"]
 
+    # noinspection PyMissingConstructor
     def __init__(self):
         pass
 

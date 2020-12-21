@@ -7,9 +7,11 @@ import wx.adv
 if typing.TYPE_CHECKING:
     import gui
 
+
 def wx2pydt(ctrl: wx.adv.DatePickerCtrl):
     dt: wx.DateTime = ctrl.GetValue()
     return datetime.date.fromtimestamp(dt.GetTicks())
+
 
 class BatchInfo:
     def __init__(self, dlg: "gui.GetUploadData"):

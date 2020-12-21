@@ -19,6 +19,7 @@ MAIN_RESULTS = {
     "Already vaccinated on 01-01-2021": [5368278577],
 }
 
+
 class MyTestCase(unittest.TestCase):
     display = True
 
@@ -42,6 +43,7 @@ class MyTestCase(unittest.TestCase):
                 register.update(p)
 
         uploader = upload.TestUploader()
+        # noinspection PyTypeChecker
         uploader.upload_people(register.filter(status="scanned"), None)
         errors_found = register.filter(status="error")
         pdf = form.ErrorReportPDF(errors_found)
@@ -68,6 +70,7 @@ class MyTestCase(unittest.TestCase):
         uploader = upload.TestUploader()
         for vaccinators, result in combos:
             self.assertEqual(uploader.check_vaccinators(vaccinators), result)
+
 
 if __name__ == '__main__':
     unittest.main()
