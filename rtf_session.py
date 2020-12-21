@@ -2,6 +2,7 @@ import re
 import subprocess
 from typing import List
 
+import wx
 from bs4 import BeautifulSoup
 
 from person import Person
@@ -36,6 +37,7 @@ def get_person(row):
 
 
 def load(fname: str) -> List[Person]:
+    wx.LogStatus(f"Reading RTF file {fname}")
     with open(fname, "r") as f:
         rtf = f.read()
         # noinspection SpellCheckingInspection

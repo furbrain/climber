@@ -1,4 +1,7 @@
 import csv
+
+import wx
+
 from person import Person
 
 FIELDNAMES = ('time', 'name', 'dob', 'nhs')
@@ -14,6 +17,7 @@ def clean_dict(dct):
 
 
 def load(fname):
+    wx.LogStatus(f"Reading RTF file {fname}")
     with open(fname, "r") as f:
         reader = csv.DictReader(f, FIELDNAMES)
         people = list(reader)

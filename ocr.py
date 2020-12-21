@@ -1,6 +1,7 @@
 import easyocr
 import cv2
 import numpy as np
+import wx
 
 import form
 from person import Person
@@ -190,4 +191,5 @@ class OCR:
     @classmethod
     def process_form(cls, fname, vaccinators):
         cls.initialise()
+        wx.LogMessage(f"Scanning {fname}")
         return cls.instance.get_all_details(fname, vaccinators)

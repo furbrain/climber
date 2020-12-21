@@ -9,9 +9,10 @@ from typing import Sequence, List
 
 import wx
 import wx.adv
+import wx.adv
 # begin wxGlade: extracode
 import wx.grid
-import wx.adv
+
 # end wxGlade
 import form
 import person
@@ -134,29 +135,37 @@ class MyFrame(wx.Frame):
         self.vaccinators = wx.Panel(self.notebook_1, wx.ID_ANY)
         self.vaccinator_data = wx.grid.Grid(self.vaccinators, wx.ID_ANY, size=(1, 1))
         self.make_forms = wx.Panel(self.notebook_1, wx.ID_ANY)
-        self.imported_data_list = wx.ListCtrl(self.make_forms, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
+        self.imported_data_list = wx.ListCtrl(self.make_forms, wx.ID_ANY,
+                                              style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
         self.imported_count_label = wx.StaticText(self.make_forms, wx.ID_ANY, "0", style=wx.ALIGN_CENTER)
         self.button_1 = wx.Button(self.make_forms, wx.ID_ANY, "Import Session")
         self.button_2 = wx.Button(self.make_forms, wx.ID_ANY, "Clear Data")
         self.button_3 = wx.Button(self.make_forms, wx.ID_ANY, "Create Forms")
         self.notebook_1_pane_3 = wx.Panel(self.notebook_1, wx.ID_ANY)
-        self.scanned_data_list = wx.ListCtrl(self.notebook_1_pane_3, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
+        self.scanned_data_list = wx.ListCtrl(self.notebook_1_pane_3, wx.ID_ANY,
+                                             style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
         self.scanned_count_label = wx.StaticText(self.notebook_1_pane_3, wx.ID_ANY, "0", style=wx.ALIGN_CENTER)
         self.button_4 = wx.Button(self.notebook_1_pane_3, wx.ID_ANY, "Load Forms")
         self.button_5 = wx.Button(self.notebook_1_pane_3, wx.ID_ANY, "Clear Data")
         self.button_6 = wx.Button(self.notebook_1_pane_3, wx.ID_ANY, "Upload Data")
         self.notebook_1_pane_4 = wx.Panel(self.notebook_1, wx.ID_ANY)
-        self.completed_data_list = wx.ListCtrl(self.notebook_1_pane_4, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
+        self.completed_data_list = wx.ListCtrl(self.notebook_1_pane_4, wx.ID_ANY,
+                                               style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
         self.completed_count_label = wx.StaticText(self.notebook_1_pane_4, wx.ID_ANY, "0", style=wx.ALIGN_CENTER)
         self.button_10 = wx.Button(self.notebook_1_pane_4, wx.ID_ANY, "Print Summary")
         self.notebook_1_pane_1 = wx.Panel(self.notebook_1, wx.ID_ANY)
-        self.error_data_list = wx.ListCtrl(self.notebook_1_pane_1, wx.ID_ANY, style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
+        self.error_data_list = wx.ListCtrl(self.notebook_1_pane_1, wx.ID_ANY,
+                                           style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
         self.error_count_label = wx.StaticText(self.notebook_1_pane_1, wx.ID_ANY, "0")
         self.button_7 = wx.Button(self.notebook_1_pane_1, wx.ID_ANY, "Print Errors")
-        self.notebook_1_pane_2 = wx.Panel(self.notebook_1, wx.ID_ANY)
-        self.log_text = wx.TextCtrl(self.notebook_1_pane_2, wx.ID_ANY, "", style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH)
+        self.notebook_1_Logs = wx.Panel(self.notebook_1, wx.ID_ANY)
+        self.log_info = wx.TextCtrl(self.notebook_1_Logs, wx.ID_ANY, "",
+                                    style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH)
         self.notebook_1_About = wx.Panel(self.notebook_1, wx.ID_ANY)
-        self.hyperlink_1 = wx.adv.HyperlinkCtrl(self.notebook_1_About, wx.ID_ANY, "Website: http://github.com/furbrain/climber", "http://github.com/furbrain/climber", style=wx.adv.HL_ALIGN_CENTRE)
+        self.hyperlink_1 = wx.adv.HyperlinkCtrl(self.notebook_1_About, wx.ID_ANY,
+                                                "Website: http://github.com/furbrain/climber",
+                                                "http://github.com/furbrain/climber", style=wx.adv.HL_ALIGN_CENTRE)
+        self.button_9 = wx.Button(self.notebook_1_About, wx.ID_HELP, "")
 
         self.__set_properties()
         self.__do_layout()
@@ -171,6 +180,8 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.print_errors, self.button_7)
         # end wxGlade
         self.people = person.Everyone()
+        self.logger = wx.LogTextCtrl(self.log_info)
+        wx.Log.SetActiveTarget(self.logger)
 
     def __set_properties(self):
         # begin wxGlade: MyFrame.__set_properties
@@ -212,8 +223,9 @@ class MyFrame(wx.Frame):
         # begin wxGlade: MyFrame.__do_layout
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_16 = wx.BoxSizer(wx.VERTICAL)
+        sizer_18 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_17 = wx.BoxSizer(wx.VERTICAL)
-        sizer_9 = wx.BoxSizer(wx.VERTICAL)
+        sizer_19 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_7 = wx.BoxSizer(wx.VERTICAL)
         sizer_8 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_10 = wx.BoxSizer(wx.VERTICAL)
@@ -223,7 +235,9 @@ class MyFrame(wx.Frame):
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_6 = wx.BoxSizer(wx.VERTICAL)
-        label_2 = wx.StaticText(self.vaccinators, wx.ID_ANY, "Please enter initials and names for all people who may be vaccinating this group", style=wx.ALIGN_LEFT)
+        label_2 = wx.StaticText(self.vaccinators, wx.ID_ANY,
+                                "Please enter initials and names for all people who may be vaccinating this group",
+                                style=wx.ALIGN_LEFT)
         sizer_6.Add(label_2, 0, wx.ALL, 3)
         sizer_6.Add(self.vaccinator_data, 1, wx.ALL | wx.EXPAND, 3)
         self.vaccinators.SetSizer(sizer_6)
@@ -259,29 +273,34 @@ class MyFrame(wx.Frame):
         sizer_8.Add(self.button_7, 0, wx.ALL, 3)
         sizer_7.Add(sizer_8, 0, wx.EXPAND, 0)
         self.notebook_1_pane_1.SetSizer(sizer_7)
-        sizer_9.Add(self.log_text, 1, wx.ALL | wx.EXPAND, 3)
-        self.notebook_1_pane_2.SetSizer(sizer_9)
-        label_9 = wx.StaticText(self.notebook_1_About, wx.ID_ANY, "Climber: covid vaccine batch uploader", style=wx.ALIGN_CENTER)
+        sizer_19.Add(self.log_info, 1, wx.ALL | wx.EXPAND, 6)
+        self.notebook_1_Logs.SetSizer(sizer_19)
+        label_9 = wx.StaticText(self.notebook_1_About, wx.ID_ANY, "Climber: covid vaccine batch uploader",
+                                style=wx.ALIGN_CENTER)
         label_9.SetFont(wx.Font(16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, ""))
         sizer_17.Add(label_9, 0, wx.ALIGN_CENTER | wx.ALL, 3)
-        label_10 = wx.StaticText(self.notebook_1_About, wx.ID_ANY, "Copyright 2020 Phil Underwood\n", style=wx.ALIGN_CENTER)
+        label_10 = wx.StaticText(self.notebook_1_About, wx.ID_ANY, "Copyright 2020 Phil Underwood\n",
+                                 style=wx.ALIGN_CENTER)
         sizer_17.Add(label_10, 0, wx.ALIGN_CENTER | wx.ALL, 3)
         sizer_17.Add(self.hyperlink_1, 0, wx.ALIGN_CENTER | wx.ALL, 3)
-        sizer_16.Add(sizer_17, 1, wx.ALIGN_CENTER | wx.ALL | wx.SHAPED, 3)
+        sizer_16.Add(sizer_17, 1, wx.ALIGN_CENTER | wx.ALL | wx.SHAPED, 6)
+        sizer_18.Add(self.button_9, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 3)
+        sizer_16.Add(sizer_18, 0, wx.ALIGN_RIGHT | wx.ALL, 6)
         self.notebook_1_About.SetSizer(sizer_16)
         self.notebook_1.AddPage(self.vaccinators, "Vaccinators")
         self.notebook_1.AddPage(self.make_forms, "Make forms")
         self.notebook_1.AddPage(self.notebook_1_pane_3, "Read forms")
         self.notebook_1.AddPage(self.notebook_1_pane_4, "Completed")
         self.notebook_1.AddPage(self.notebook_1_pane_1, "Errors")
-        self.notebook_1.AddPage(self.notebook_1_pane_2, "Logs")
+        self.notebook_1.AddPage(self.notebook_1_Logs, "Logs")
         self.notebook_1.AddPage(self.notebook_1_About, "About")
         sizer_1.Add(self.notebook_1, 1, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
         self.Layout()
         # end wxGlade
 
-    def update_list(self, list_ctrl: wx.ListCtrl, count_ctrl: wx.StaticText, status: str, headings=person.DEFAULT_HEADINGS):
+    def update_list(self, list_ctrl: wx.ListCtrl, count_ctrl: wx.StaticText, status: str,
+                    headings=person.DEFAULT_HEADINGS):
         list_ctrl.DeleteAllItems()
         filtered_people = sorted(self.people.filter(status=status), key=lambda x: x.time)
         populate_list(list_ctrl, filtered_people, headings)
@@ -378,10 +397,11 @@ class MyFrame(wx.Frame):
         report.save(fname)
         webbrowser.open(fname)
 
-
     def createSummary(self, event):  # wxGlade: MyFrame.<event_handler>
         print("Event handler 'createSummary' not implemented!")
         event.Skip()
+
+
 # end of class MyFrame
 
 class MyApp(wx.App):
