@@ -9,6 +9,7 @@ DPI = 300
 
 
 class OCR:
+    instance = None
     def __init__(self):
         self.reader = easyocr.Reader(['en'])
         self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
@@ -180,5 +181,12 @@ class OCR:
                 p.set_error("Too many boxes ticked")
         return people
 
+    @classmethod
+    def initialise(cls):
+        if cls.instance is None:
+            cls.instance = cls()
 
-ocrreader = OCR()
+    @classmethod
+    def process_form(cls, fname, vaccinators):
+        cls.initialise()
+        return cls.instance.get_all_details(fname, vaccinators)

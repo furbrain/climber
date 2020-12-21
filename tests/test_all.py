@@ -2,7 +2,7 @@ import unittest
 import webbrowser
 
 import form
-import ocr
+from ocr import OCR
 import person
 import sessions
 from tfile import TFile
@@ -25,7 +25,7 @@ class MyTestCase(unittest.TestCase):
         webbrowser.open(name)
 
         for page in ("test_scan.jpg", "completed-2.jpg"):
-            updates = ocr.ocrreader.get_all_details(page, VACCINATORS)
+            updates = OCR.process_form(page, VACCINATORS)
             for p in updates:
                 register.update(p)
 
