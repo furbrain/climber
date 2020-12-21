@@ -39,6 +39,7 @@ class BatchValidator(wx.Validator):
     def TransferToWindow(self):
         return True
 
+
 class BatchInfo:
     def __init__(self, dlg: "gui.GetUploadData"):
         self.clinic_date = wx2pydt(dlg.clinic_date)

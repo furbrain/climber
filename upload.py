@@ -23,7 +23,7 @@ class Uploader:
         self.browser = BROWSER()
         self.browser.get(PINNACLE_URL)
 
-    def logged_in(self):
+    def is_logged_in(self):
         pass
 
     def check_vaccinator(self, vaccinator: str) -> bool:
@@ -51,11 +51,12 @@ class Uploader:
 class TestUploader(Uploader):
     valid_vaccinators = ["Underwood", "Cobley"]
     logged_in = False
+
     # noinspection PyMissingConstructor
     def __init__(self):
         pass
 
-    def logged_in(self):
+    def is_logged_in(self):
         return self.logged_in
 
     def check_vaccinator(self, vaccinator: str) -> bool:
