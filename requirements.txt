@@ -6,3 +6,4 @@ numpy~=1.19.4
 beautifulsoup4~=4.9.3
 fpdf~=1.7.2
 attrs~=20.3.0
+selenium~=3.141.0
