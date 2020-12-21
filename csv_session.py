@@ -18,6 +18,5 @@ def load(fname):
         reader = csv.DictReader(f, FIELDNAMES)
         people = list(reader)
     people = people[1:]
-    print(people)
     people = [Person(**clean_dict(p)) for p in people]
     return people
