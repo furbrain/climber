@@ -19,10 +19,6 @@ Error reporting:
 
 Functionality:
 
-
-Test Suite:
-    this would be a good idea...
-
 Logging:
     just have a window to record log entries - helps with debugging
 

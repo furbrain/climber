@@ -23,10 +23,13 @@ class BatchValidator(wx.Validator):
             wx.MessageBox("Clinic date must be on or before use by date")
             return False
         if clinic_date > expiry_date:
-            wx.MessageBox("Clinic date must be on or before use by date")
+            wx.MessageBox("Clinic date must be on or before expiry date")
             return False
         if clinic_date > datetime.date.today():
             wx.MessageBox("Clinic date must not be in the future")
+            return False
+        if parent.batch.GetValue() == "":
+            wx.MessageBox("Batch number cannot be empty")
             return False
         return True
 
