@@ -22,9 +22,9 @@ from form import ErrorReportPDF
 from ocr import OCR
 from tfile import TFile
 
-
 # begin wxGlade: dependencies
 # end wxGlade
+from upload import TestUploader
 
 
 def resize_list_ctrl(ctrl):
@@ -335,7 +335,12 @@ class MyFrame(wx.Frame):
             self.update_all_lists()
 
     def uploadData(self, event):  # wxGlade: MyFrame.<event_handler>
+        uploader = TestUploader()
         # check system is logged in
+        while not uploader.logged_in():
+            wx.MessageBox("Please log in to Outcomes4Health", "Log in")
+            # FIXME
+            uploader.logged_in = True
         # check vaccinators are recognised
         failed_vaccinators = uploader.check_vaccinators(self.people.get_vaccinators())
         if len(failed_vaccinators) > 0:
@@ -346,9 +351,10 @@ class MyFrame(wx.Frame):
         if dlg.ShowModal() != wx.ID_OK:
             return
         batch_info = BatchInfo(dlg)
-
         # pass list of people to uploader
+        uploader.upload_people(self.people.filter(status="scanned"), batch_info)
         # update views
+        self.update_all_lists()
         print("Event handler 'uploadData' not implemented!")
         event.Skip()
 

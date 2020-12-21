@@ -135,3 +135,7 @@ class Everyone(list):
         match.vaccinator = person.vaccinator
         match.image = person.image
         match.error_type = person.error_type
+
+    def get_vaccinators(self):
+        return list({p.vaccinator for p in self if p.vaccinator})
+

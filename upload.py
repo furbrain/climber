@@ -3,7 +3,7 @@ import datetime
 import selenium
 import selenium.webdriver
 import selenium.common.exceptions
-from typing import Sequence
+from typing import Sequence, Set
 import person
 from batch import BatchInfo
 
@@ -23,14 +23,14 @@ class Uploader:
         self.browser = BROWSER()
         self.browser.get(PINNACLE_URL)
 
-    def wait_for_login(self):
+    def logged_in(self):
         pass
 
     def check_vaccinator(self, vaccinator: str) -> bool:
         return False
 
-    def check_vaccinators(self, vaccinators: Sequence[str]) -> bool:
-        return all(self.check_vaccinator(v) for v in vaccinators)
+    def check_vaccinators(self, vaccinators: Sequence[str]) -> Set[str]:
+        return {v for v in vaccinators if not self.check_vaccinator(v)}
 
     def upload_person(self, p: person.Person):
         pass
@@ -50,10 +50,13 @@ class Uploader:
 
 class TestUploader(Uploader):
     valid_vaccinators = ["Underwood", "Cobley"]
-
+    logged_in = False
     # noinspection PyMissingConstructor
     def __init__(self):
         pass
+
+    def logged_in(self):
+        return self.logged_in
 
     def check_vaccinator(self, vaccinator: str) -> bool:
         return vaccinator in self.valid_vaccinators

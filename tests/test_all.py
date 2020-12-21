@@ -61,11 +61,11 @@ class MyTestCase(unittest.TestCase):
 
     def test_check_vaccinators(self):
         combos = [
-            (("Underwood", "Cobley"), True),
-            (("Cobley", "Underwood"), True),
-            (("Weeks", "Underwood"), False),
-            (("Underwood",), True),
-            (("Kaye", "Weeks"), False),
+            (("Underwood", "Cobley"), set()),
+            (("Cobley", "Underwood"), set()),
+            (("Weeks", "Underwood"), {"Weeks"}),
+            (("Underwood",), set()),
+            (("Kaye", "Weeks"), {"Kaye", "Weeks"}),
         ]
         uploader = upload.TestUploader()
         for vaccinators, result in combos:
