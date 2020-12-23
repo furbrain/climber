@@ -9,7 +9,6 @@ from typing import Sequence, List
 
 import wx
 import wx.adv
-import wx.adv
 # begin wxGlade: extracode
 import wx.grid
 
@@ -23,7 +22,7 @@ from ocr import OCR
 from tfile import TFile
 # begin wxGlade: dependencies
 # end wxGlade
-from upload import TestUploader
+from upload import Uploader, NotLoggedIn
 
 
 def resize_list_ctrl(ctrl):
@@ -125,7 +124,9 @@ class GetUploadData(wx.Dialog):
 
 
 # end of class GetUploadData
+# noinspection PyPep8Naming, PyUnusedLocal
 class MyFrame(wx.Frame):
+    # noinspection PyPep8
     def __init__(self, *args, **kwds):
         # begin wxGlade: MyFrame.__init__
         kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_FRAME_STYLE
@@ -134,6 +135,7 @@ class MyFrame(wx.Frame):
         self.notebook_1 = wx.Notebook(self, wx.ID_ANY)
         self.vaccinators = wx.Panel(self.notebook_1, wx.ID_ANY)
         self.vaccinator_data = wx.grid.Grid(self.vaccinators, wx.ID_ANY, size=(1, 1))
+        self.button_8 = wx.Button(self.vaccinators, wx.ID_ANY, "Check vaccinators")
         self.make_forms = wx.Panel(self.notebook_1, wx.ID_ANY)
         self.imported_data_list = wx.ListCtrl(self.make_forms, wx.ID_ANY,
                                               style=wx.LC_HRULES | wx.LC_REPORT | wx.LC_VRULES)
@@ -170,6 +172,7 @@ class MyFrame(wx.Frame):
         self.__set_properties()
         self.__do_layout()
 
+        self.Bind(wx.EVT_BUTTON, self.check_vaccinators, self.button_8)
         self.Bind(wx.EVT_BUTTON, self.importSession, self.button_1)
         self.Bind(wx.EVT_BUTTON, self.clearData, self.button_2)
         self.Bind(wx.EVT_BUTTON, self.createForms, self.button_3)
@@ -235,11 +238,14 @@ class MyFrame(wx.Frame):
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_6 = wx.BoxSizer(wx.VERTICAL)
+        sizer_9 = wx.BoxSizer(wx.HORIZONTAL)
         label_2 = wx.StaticText(self.vaccinators, wx.ID_ANY,
                                 "Please enter initials and names for all people who may be vaccinating this group",
                                 style=wx.ALIGN_LEFT)
         sizer_6.Add(label_2, 0, wx.ALL, 3)
         sizer_6.Add(self.vaccinator_data, 1, wx.ALL | wx.EXPAND, 3)
+        sizer_9.Add(self.button_8, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 3)
+        sizer_6.Add(sizer_9, 0, wx.ALIGN_RIGHT | wx.ALL, 6)
         self.vaccinators.SetSizer(sizer_6)
         sizer_2.Add(self.imported_data_list, 2, wx.ALL | wx.EXPAND, 3)
         label_1 = wx.StaticText(self.make_forms, wx.ID_ANY, "People:", style=wx.ALIGN_CENTER)
@@ -349,9 +355,6 @@ class MyFrame(wx.Frame):
             if fd.ShowModal() != wx.ID_OK:
                 return
             paths = fd.GetPaths()
-            vaccinators = [self.vaccinator_data.GetCellValue(i, 1) for i in range(7)]
-            vaccinators = [x for x in vaccinators if x]
-            # FIXME check vaccinators...
             progress = wx.ProgressDialog("Scanning forms", "Starting up OCR" + " " * 30, maximum=len(paths))
             wx.Yield()
             OCR.initialise()
@@ -360,23 +363,21 @@ class MyFrame(wx.Frame):
                 if not progress.Update(count, f"Scanning {fname}"):
                     break
                 wx.Yield()
-                scanned_people = OCR.process_form(path, vaccinators)
+                scanned_people = OCR.process_form(path, self.get_vaccinators())
                 for p in scanned_people:
                     self.people.update(p)
             progress.Destroy()
             self.update_all_lists()
 
+    def get_vaccinators(self):
+        vaccinators = [self.vaccinator_data.GetCellValue(i, 1) for i in range(7)]
+        vaccinators = [x for x in vaccinators if x]
+        return vaccinators
+
     def uploadData(self, event):  # wxGlade: MyFrame.<event_handler>
-        uploader = TestUploader()
         # check system is logged in
-        while not uploader.is_logged_in():
-            wx.MessageBox("Please log in to Outcomes4Health", "Log in")
-            # FIXME
-            uploader.logged_in = True
-        # check vaccinators are recognised
-        failed_vaccinators = uploader.check_vaccinators(self.people.get_vaccinators())
-        if len(failed_vaccinators) > 0:
-            wx.MessageBox("Unknown vaccinators: " + ', '.join(failed_vaccinators))
+        vaccinators = self.people.get_vaccinators()
+        if not self.vaccinator_list_valid(vaccinators):
             return
         # Get batch and drawer details
         dlg = GetUploadData(self)
@@ -384,11 +385,26 @@ class MyFrame(wx.Frame):
             return
         batch_info = BatchInfo(dlg)
         # pass list of people to uploader
-        uploader.upload_people(self.people.filter(status="scanned"), batch_info)
+        Uploader.upload_people(self.people.filter(status="scanned"), batch_info)
         # update views
         self.update_all_lists()
-        print("Event handler 'uploadData' not implemented!")
-        event.Skip()
+
+    def vaccinator_list_valid(self, vaccinators):
+        success = True
+        while True:
+            try:
+                failed_vaccinators = Uploader.check_vaccinators(vaccinators)
+                break
+            except NotLoggedIn:
+                dlg = wx.MessageDialog(self,
+                                       "Please log in to Outcomes4health and go to the Covid 20/21 service",
+                                       style=wx.OK | wx.CANCEL)
+                if dlg.ShowModal() != wx.ID_OK:
+                    return False
+        if len(failed_vaccinators) > 0:
+            success = False
+            wx.MessageBox("Unknown vaccinators: " + ', '.join(failed_vaccinators))
+        return success
 
     def print_errors(self, event):  # wxGlade: MyFrame.<event_handler>
         errors = self.people.filter(status="error")
@@ -400,6 +416,10 @@ class MyFrame(wx.Frame):
     def createSummary(self, event):  # wxGlade: MyFrame.<event_handler>
         print("Event handler 'createSummary' not implemented!")
         event.Skip()
+
+    def check_vaccinators(self, event):  # wxGlade: MyFrame.<event_handler>
+        if self.vaccinator_list_valid(self.get_vaccinators()):
+            wx.MessageBox("All vaccinators recognised")
 
 
 # end of class MyFrame

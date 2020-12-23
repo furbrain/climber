@@ -1,6 +1,7 @@
 Error reporting:
     Create data flow analysis to make sure that no records are "lost"
     Backup with test suite
+    DONE
 
 
     When reading score-cards:
@@ -21,4 +22,5 @@ Functionality:
 
 Logging:
     just have a window to record log entries - helps with debugging
+    DONE - now lets add a bunch of logging bits
 

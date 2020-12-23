@@ -15,8 +15,8 @@ MAIN_RESULTS = {
     "Too many boxes ticked": [9095410581, 5151943173, 3994464768, 1751230875],
     "Invalid box ticked": [2077450598, 2007447605, 1202362096],
     "No boxes ticked (DNA?)": [2616381722, 2858131467, 2242795231],
-    "Error occurred during Pinnacle upload": [3396620143],
-    "Already vaccinated on 01-01-2021": [5368278577],
+    "Selenium error: Bad upload": [3396620143],
+    "RecentlyVaccinated: Already vaccinated on 01-01-2021": [5368278577],
 }
 
 
@@ -67,7 +67,7 @@ class MyTestCase(unittest.TestCase):
             (("Underwood",), set()),
             (("Kaye", "Weeks"), {"Kaye", "Weeks"}),
         ]
-        uploader = upload.TestUploader()
+        uploader = upload.TestUploader
         for vaccinators, result in combos:
             self.assertEqual(uploader.check_vaccinators(vaccinators), result)
 

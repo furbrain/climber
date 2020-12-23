@@ -1,9 +1,19 @@
 import datetime
+import time
+from typing import Sequence, Set, Optional
 
 import selenium
+from selenium.common.exceptions import WebDriverException
 import selenium.webdriver
-import selenium.common.exceptions
-from typing import Sequence, Set
+import selenium.webdriver.common
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.remote.webelement import WebElement
+# noinspection PyPep8Naming
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
+import batch
 import person
 from batch import BatchInfo
 
@@ -11,58 +21,238 @@ BROWSER = selenium.webdriver.Firefox
 PINNACLE_URL = "https://outcomes4health.org/o4h/"
 
 
-class RecentlyVaccinated(Exception):
+class UploadException(Exception):
+    pass
+
+
+class RecentlyVaccinated(UploadException):
     def __init__(self, date):
         self.date = date
         self.message = f"Already vaccinated on {date:%m-%d-%Y}"
         super().__init__(self.message)
 
 
+class ElementNotFound(UploadException):
+    pass
+
+
+class TooManyElementsFound(UploadException):
+    pass
+
+
+class VaccinationNotExpected(UploadException):
+    pass
+
+
+class NotLoggedIn(UploadException):
+    pass
+
+
+def as_date(dt):
+    return f"{dt}:%d-%b-%Y"
+
+
 class Uploader:
+    instance = None
+
     def __init__(self):
         self.browser = BROWSER()
         self.browser.get(PINNACLE_URL)
 
-    def is_logged_in(self):
-        pass
+    @classmethod
+    def get_instance(cls):
+        if cls.instance is None:
+            cls.instance = cls()
+            return cls.instance
+        try:
+            cls.instance.browser.title
+        except selenium.common.exceptions.WebDriverException:
+            # browser has been closed - restart
+            cls.instance = cls()
+        return cls.instance
+
+    def get_unique_element_from_xpath(self,
+                                      xpath: str,
+                                      description: str,
+                                      element: Optional[WebElement] = None) -> WebElement:
+        if element is None:
+            element = self.browser
+        element_list = element.find_elements_by_xpath(xpath)
+        if len(element_list) == 0:
+            raise ElementNotFound(f"Could not find {description}")
+        elif len(element_list) > 1:
+            for i in element_list:
+                print(i.get_attribute("outerHTML"))
+            raise TooManyElementsFound(f"Found more than one {description}")
+        return element_list[0]
+
+    def get_control_from_label(self, text):
+        label = self.get_unique_element_from_xpath(f"//label[ contains (text(), '{text}')]", f"Label for {text}")
+        id_text = label.get_attribute("for")
+        return self.get_unique_element_from_xpath(f"//*[@id='{id_text}']", f"Control for {text}")
+
+    def get_fieldset(self, legend: str):
+        xpath = f"//legend[ contains (text(), '{legend}')]/.."
+        return self.get_unique_element_from_xpath(xpath, f"Field set: {legend}")
+
+    def get_radio_button(self, element: WebElement, value: str):
+        xpath = f".//input[@type='radio' and contains(@value, '{value}')]"
+        return self.get_unique_element_from_xpath(xpath, f"Radio button '{value}'", element)
+
+    def assert_logged_in(self):
+        try:
+            self.get_unique_element_from_xpath("//h3[contains(text(), 'COVID Vaccine - 2020/21')]", "title")
+        except ElementNotFound:
+            raise NotLoggedIn
 
     def check_vaccinator(self, vaccinator: str) -> bool:
-        return False
+        try:
+            self.select_clinician("Pre-Screener", vaccinator, "ui-id-1")
+        except UploadException:
+            return False
+        return True
 
-    def check_vaccinators(self, vaccinators: Sequence[str]) -> Set[str]:
-        return {v for v in vaccinators if not self.check_vaccinator(v)}
+    @classmethod
+    def check_vaccinators(cls, vaccinators: Sequence[str]) -> Set[str]:
+        inst = cls.get_instance()
+        inst.assert_logged_in()
+        return {v for v in vaccinators if not inst.check_vaccinator(v)}
 
-    def upload_person(self, p: person.Person):
-        pass
-
-    def upload_people(self, people: Sequence[person.Person], batch: BatchInfo):
+    @classmethod
+    def upload_people(cls, people: Sequence[person.Person], batch_info: BatchInfo):
+        inst = cls.get_instance()
+        inst.assert_logged_in()
         for p in people:
             try:
-                self.upload_person(p)
+                inst.upload_person(p, batch_info)
                 p.status = "uploaded"
-            except selenium.common.exceptions.WebDriverException:
+            except selenium.common.exceptions.WebDriverException as e:
                 p.status = "error"
-                p.error_type = "Error occurred during Pinnacle upload"
-            except RecentlyVaccinated as e:
+                p.error_type = f"Selenium error: {str(e.msg)}"
+            except UploadException as e:
                 p.status = "error"
-                p.error_type = e.message
+                p.error_type = f"{type(e).__name__}: {str(e)}"
+
+    def click_radio_button(self, group: str, value: str):
+        if group.startswith("f:"):
+            ctrl = self.get_fieldset(group[2:])
+        else:
+            ctrl = self.get_control_from_label(group)
+        radio_button = self.get_radio_button(ctrl, value)
+        radio_button.click()
+
+    def enter_text(self, label, text, description=""):
+        if label.startswith('x:'):
+            if description == "":
+                description = f"Unnamed xpath: {label[2:]}"
+            ctrl = self.get_unique_element_from_xpath(label[2:], description)
+        else:
+            ctrl = self.get_control_from_label(label)
+        ctrl.clear()
+        ctrl.send_keys(text, Keys.TAB)
+
+    def select_clinician(self, role, user, menu_id):
+        ctrl = self.get_control_from_label(role)
+        ctrl.clear()
+        ctrl.send_keys(user)
+        ul = WebDriverWait(self.browser, 10).until(EC.visibility_of_element_located((By.ID, menu_id)))
+        screener = self.get_unique_element_from_xpath(f".//a", f"user for {role}", ul)
+        screener.click()
+
+    def setup_clinic(self, clinic_date, vaccinator):
+        self.click_radio_button("Clinic Type", "Staged Service")
+        self.select_clinician("Pre-Screener", vaccinator, "ui-id-1")
+        self.enter_text("Vaccination Date", as_date(clinic_date))
+
+    def find_patient(self, p: person.Person) -> str:
+        try:
+            self.get_unique_element_from_xpath("//input[@value='Search by patient NHS Number']",
+                                               "NHS number search button").click()
+            time.sleep(1)
+        except WebDriverException:
+            pass
+        self.enter_text("x://input[contains(@id,'pds_dob_entry')]", as_date(p.dob), "DOB entry")
+        self.enter_text("x://input[contains(@id,'pds_nhsnumber_entry')]", p.get_text('nhs'), "NHS number")
+        # run search
+        self.get_unique_element_from_xpath("//input[@value='Lookup via PDS']", "Search PDS button").click()
+        # wait for results and confirm
+        demographics_table: WebElement = WebDriverWait(self.browser, 2).until(
+            EC.presence_of_element_located((By.XPATH, "//table[@class='results-table']")))
+        # get highlighted rows, check two entries
+        correct_entries = demographics_table.find_elements_by_css_selector(".highlight-data-ok")
+        if len(correct_entries) != 2:
+            raise UploadException("Incorrect demographics?")
+        # click the confirm button
+        self.get_unique_element_from_xpath("//input[@value='Confirm Patient']", "Confirm demographics button").click()
+        self.click_radio_button("Consent for email", "No")
+        self.click_radio_button("Emergency contact", "No")
+        recommendation = self.get_unique_element_from_xpath("//span[@id='nims_status_when_saved']/strong",
+                                                            "dose recommendation")
+        recommendation = recommendation.get_attribute('innerHTML')
+        return recommendation
+
+    def do_vaccination(self, recommendation: str, batch_info: batch.BatchInfo, p: person.Person):
+        if batch_info.drawer == "":
+            drawer = p.vaccinator
+        else:
+            drawer = batch_info.drawer
+        self.click_radio_button("Clinically suitable", "Yes")
+        self.click_radio_button("f:Vaccination consent", "1")
+        self.click_radio_button("f:Consent given by", "Patient")
+        self.select_clinician("Drawn up by", drawer, "ui-id-6")
+        self.select_clinician("Vaccinator", p.vaccinator, "ui-id-7")
+        if "Expect FIRST" in recommendation:
+            self.click_radio_button("f:Vaccination Sequence", "First Vaccination")
+        elif "Expect SECOND" in recommendation:
+            self.click_radio_button("f:Vaccination Sequence", "Second Vaccination")
+        else:
+            raise VaccinationNotExpected(recommendation)
+        if batch_info.manufacturer == "Pfizer":
+            vax_type = "BNT162b2"
+        else:
+            raise UploadException(f"Unknown manufacturer: {batch_info.manufacturer}")
+        self.click_radio_button("f:Vaccine Type", vax_type)
+        self.enter_text("Batch number", batch_info.batch)
+        self.enter_text("Manufacturer expiry", as_date(batch_info.expiry_date))
+        self.enter_text("Use by date", as_date(batch_info.use_by_date))
+        self.click_radio_button("f:Injection site", "Left deltoid")
+        self.click_radio_button("f:Vaccination route", "Intramuscular")
+        self.enter_text("Time of vaccination", p.get_text('time'))
+        advice_set = self.get_fieldset("Advice provided")
+        self.get_unique_element_from_xpath(".//input[@value='Yes']", "Advice Checkbox", advice_set).click()
+
+    def upload_person(self, p: person.Person, batch_info: batch.BatchInfo, save=False):
+        # self.browser.refresh()
+        # FIXME be more clever to make sure page is loaded?
+        time.sleep(3)
+        self.setup_clinic(batch_info.clinic_date, p.vaccinator)
+        recommendation = self.find_patient(p)
+        self.do_vaccination(recommendation, batch_info, p)
+
+        self.get_unique_element_from_xpath("//input[@type='checkbox' and @name='inContinuousEntry']",
+                                           "Do another checkbox").click()
+        big_red_button = self.get_unique_element_from_xpath("//input[@type='submit' and @value='save']", "Submit data")
+        # if save:
+        #     big_red_button.click()
 
 
 class TestUploader(Uploader):
     valid_vaccinators = ["Underwood", "Cobley"]
     logged_in = False
+    instance = None
 
     # noinspection PyMissingConstructor
     def __init__(self):
-        pass
+        self.browser = self
+        self.title = ""
 
-    def is_logged_in(self):
-        return self.logged_in
+    def assert_logged_in(self):
+        pass
 
     def check_vaccinator(self, vaccinator: str) -> bool:
         return vaccinator in self.valid_vaccinators
 
-    def upload_person(self, p: person.Person):
+    def upload_person(self, p: person.Person, batch_info: batch.BatchInfo, save=False):
         last_digit = str(p.nhs)[-1]
         if last_digit == "3":
             raise selenium.common.exceptions.WebDriverException("Bad upload")
