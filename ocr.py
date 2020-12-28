@@ -1,3 +1,6 @@
+import os
+import sys
+
 import easyocr
 import cv2
 import numpy as np
@@ -13,7 +16,11 @@ class OCR:
     instance = None
 
     def __init__(self):
-        self.reader = easyocr.Reader(['en'])
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            model_dir = os.path.join(sys._MEIPASS, 'model')
+            self.reader = easyocr.Reader(['en'], model_storage_directory=model_dir, download_enabled=False)
+        else:
+            self.reader = easyocr.Reader(['en'])
         self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
         self.bounds = None
         self.read_file("blank.jpg")

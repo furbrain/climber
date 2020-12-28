@@ -3,3 +3,5 @@ __pycache__
 *.pyc
 /#~wxg.autosave~climber.wxg#
 /geckodriver.log
+/venv/
+/Output/

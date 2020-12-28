@@ -17,7 +17,17 @@ import batch
 import person
 from batch import BatchInfo
 
-BROWSER = selenium.webdriver.Firefox
+import platform
+
+if platform.system() == "Windows":
+    import winreg
+
+    edge_version_key = r"Software\Microsoft\Edge\BLBeacon"
+    key1 = winreg.OpenKey(winreg.HKEY_CURRENT_USER, edge_version_key, 0, winreg.KEY_READ)
+    edge_version = winreg.QueryValueEx(key1, "version")[0]
+    BROWSER = lambda: selenium.webdriver.Edge(f"drivers/{edge_version}.exe")
+else:
+    BROWSER = selenium.webdriver.Firefox
 PINNACLE_URL = "https://outcomes4health.org/o4h/"
 
 
