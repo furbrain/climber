@@ -5,3 +5,8 @@ __pycache__
 /geckodriver.log
 /venv/
 /Output/
+/build/
+/dist/
+/drivers/
+*.bak
+

@@ -37,7 +37,7 @@ class MyTestCase(unittest.TestCase):
             pdf.save(name)
             webbrowser.open(name)
 
-        for page in ("test_scan.jpg", "completed-2.jpg"):
+        for page in ("test_scan1.jpg", "test_scan2.jpg"):
             updates = OCR.process_form(page, VACCINATORS)
             for p in updates:
                 register.update(p)
