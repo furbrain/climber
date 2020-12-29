@@ -10,7 +10,8 @@ class TFile:
 
     @classmethod
     def get(cls, suffix=""):
-        _, fname = tempfile.mkstemp(suffix=suffix)
+        fd, fname = tempfile.mkstemp(suffix=suffix)
+        os.close(fd)
         cls.filelist.append(fname)
         return fname
 
