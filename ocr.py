@@ -172,11 +172,12 @@ class OCR:
     def get_all_details(self, fname, vaccinators):
         self.read_file(fname)
         self.map_image()
+        times = self.read_times()
         dobs = self.read_dobs()
         nhss = self.read_nhs_nums()
         boxes = self.get_marks()
         images = self.get_images()
-        people = [Person(dob=d, nhs=n, status="scanned", image=i.tobytes()) for d, n, i in zip(dobs, nhss, images) if
+        people = [Person(time=t, dob=d, nhs=n, status="scanned", image=i.tobytes()) for t, d, n, i in zip(times, dobs, nhss, images) if
                   d != "" or n != ""]
         for p, b in zip(people, boxes):
             if len(b) == 0:

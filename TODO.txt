@@ -3,6 +3,9 @@ Error reporting:
     Backup with test suite
     DONE
 
+    raise an alert when try to close without printing error reports
+    if you have done an upload only
+
 
     When reading score-cards:
         double check initials against vaccinator list

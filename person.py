@@ -40,6 +40,8 @@ def convert_nhs(val):
 
 
 def repr_nhs(val):
+    if val==-1:
+        return ""
     val = f"{val:010}"
     val = f"{val[0:3]} {val[3:6]} {val[6:10]}"
     return val
@@ -70,8 +72,6 @@ class Person:
 
     @nhs.validator
     def _nhs_validator(self, attribute, value):
-        if value <= 0:
-            self.set_error("Invalid NHS number")
         if value >= 10000000000:
             self.set_error("Invalid NHS number")
 
@@ -109,10 +109,22 @@ class Everyone(list):
         else:
             return None
 
+    def get_by_time_and_dob(self, time, dob) -> Union[None, Person]:
+        results = self.filter(time=time, dob=dob)
+        if len(results) >= 1:
+            return results[0]
+        else:
+            return None
+
     def append(self, person: Person):
-        match = self.get_by_nhs(person.nhs)
-        if match is not None:
-            person.set_error("Duplicate NHS number")
+        if person.nhs == -1:
+            match = self.get_by_time_and_dob(person.time, person.dob)
+            if match is not None:
+                person.set_error("Duplicate time and dob")
+        else:
+            match = self.get_by_nhs(person.nhs)
+            if match is not None:
+                person.set_error("Duplicate NHS number")
         super().append(person)
 
     def extend(self, lst: List[Person]):
@@ -120,9 +132,12 @@ class Everyone(list):
             self.append(p)
 
     def update(self, person: Person):
-        match = self.get_by_nhs(person.nhs)
+        if person.nhs == -1:
+            match = self.get_by_time_and_dob(person.time, person.dob)
+        else:
+            match = self.get_by_nhs(person.nhs)
         if match is None:
-            person.set_error("NHS number not found")
+            person.set_error("Matching patient not found")
             self.append(person)
             return
         if match.dob != person.dob:

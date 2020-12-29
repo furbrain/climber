@@ -30,7 +30,7 @@ def get_person(row):
     data = data.splitlines()
     name = data[0]
     name = re.sub(r"\(.*\)", "", name)
-    dob = find_regex(data, DOB_REGEX)
+    dob = data[2]
     nhs = find_regex(data, NHS_REGEX)
     p = Person(time=time, name=name, dob=dob, nhs=nhs)
     return p
