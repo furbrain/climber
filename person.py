@@ -34,7 +34,7 @@ def convert_nhs(val):
         val = val.replace(" ", "")
     try:
         val = int(val)
-    except ValueError:
+    except (ValueError, TypeError):
         val = -1
     return val
 
@@ -97,7 +97,7 @@ class Everyone(list):
         super().__init__()
 
     def filter(self, **kwargs) -> List[Person]:
-        lst = self
+        lst = sorted(self, key = lambda x: x.time)
         for key, value in kwargs.items():
             lst = [x for x in lst if getattr(x, key) == value]
         return lst

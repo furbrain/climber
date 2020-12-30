@@ -21,16 +21,18 @@ def find_regex(strings, regex):
 
 def get_person(row):
     cells = [list(x.strings) for x in row.find_all("td")]
-    if len(cells) < 4:
+    if len(cells) < 3:
         return None
     time = cells[0][0]
     if time == "TIME":  # this is a header row - ignore
         return None
     data = ''.join(cells[1])
+    if data == '':  # no name, a blank entry
+        return None
     data = data.splitlines()
     name = data[0]
     name = re.sub(r"\(.*\)", "", name)
-    dob = data[2]
+    dob = cells[2][0]
     nhs = find_regex(data, NHS_REGEX)
     p = Person(time=time, name=name, dob=dob, nhs=nhs)
     return p
