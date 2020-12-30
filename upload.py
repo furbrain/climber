@@ -190,6 +190,7 @@ class Uploader:
             self.find_patient_by_nhs(p)
         self.click_radio_button("Consent for email", "No")
         self.click_radio_button("Emergency contact", "No")
+        time.sleep(2)
         recommendation = self.get_unique_element_from_xpath("//span[@id='nims_status_when_saved']/strong",
                                                             "dose recommendation")
         recommendation = recommendation.get_attribute('innerHTML')
@@ -249,6 +250,7 @@ class Uploader:
             raise UploadException("Incorrect demographics?")
         # click the confirm button
         self.get_unique_element_from_xpath("//input[@value='Confirm Patient']", "Confirm demographics button").click()
+        time.sleep(2)
 
 
     def do_vaccination(self, recommendation: str, batch_info: batch.BatchInfo, p: person.Person):
@@ -296,6 +298,8 @@ class Uploader:
     def upload_person(self, p: person.Person, batch_info: batch.BatchInfo, save=False):
         self.browser.get("https://outcomes4health.org/o4h/services/enter?id=137334&xid=137334&xact=provisionnew")
         time.sleep(2)
+        body = self.browser.find_element_by_tag_name('body')
+        body.send_keys(Keys.CONTROL + Keys.HOME)
         self.assert_logged_in()
         self.setup_clinic(batch_info.clinic_date, p.vaccinator)
         recommendation = self.find_patient(p)

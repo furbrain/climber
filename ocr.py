@@ -31,6 +31,7 @@ class OCR:
         self.image = None
         self.image_points = None
         self.thresholded = None
+        #self.set_display()
 
     def set_display(self):
         self.display = True
@@ -89,8 +90,11 @@ class OCR:
         return np.array(centroids, dtype="float32")
 
     def has_mark(self, rect):
-        test_area = self.thresholded[rect[2]:rect[3], rect[0]:rect[1]]
-        dark_prop = 1 - (np.count_nonzero(test_area) / ((rect[1] - rect[0]) * (rect[3] - rect[2])))
+        area = rect.copy()
+        area[0:2:2] += 10
+        area[1:3:2] -= 10
+        test_area = self.thresholded[area[2]:area[3], area[0]:area[1]]
+        dark_prop = 1 - (np.count_nonzero(test_area) / ((area[1] - area[0]) * (area[3] - area[2])))
         return dark_prop > 0.025
 
     def draw_bounds(self):

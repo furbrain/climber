@@ -449,13 +449,14 @@ class MyFrame(wx.Frame):
     def uploadData(self, event):  # wxGlade: MyFrame.<event_handler>
         # check system is logged in
         vaccinators = self.people.get_vaccinators()
+        wx.LogStatus(f"checking vaccinators: {vaccinators}")
         if not self.vaccinator_list_valid(vaccinators):
             return
         # Get batch and drawer details
         dlg = GetUploadData(self)
         if dlg.ShowModal() != wx.ID_OK:
             return
-        batch_info = BatchInfo(dlg)
+        batch_info = BatchInfo.fromDialog(dlg)
         # pass list of people to uploader
         Uploader.upload_people(self.people.filter(status="scanned"), batch_info, save=True)
         # update views
