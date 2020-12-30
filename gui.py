@@ -457,7 +457,7 @@ class MyFrame(wx.Frame):
             return
         batch_info = BatchInfo(dlg)
         # pass list of people to uploader
-        Uploader.upload_people(self.people.filter(status="scanned"), batch_info)
+        Uploader.upload_people(self.people.filter(status="scanned"), batch_info, save=True)
         # update views
         self.update_all_lists()
 

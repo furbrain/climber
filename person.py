@@ -153,4 +153,3 @@ class Everyone(list):
 
     def get_vaccinators(self):
         return list({p.vaccinator for p in self if p.vaccinator})
-

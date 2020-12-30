@@ -18,6 +18,7 @@ import person
 from batch import BatchInfo
 
 import platform
+import wx
 
 if platform.system() == "Windows":
     import winreg
@@ -59,7 +60,7 @@ class NotLoggedIn(UploadException):
 
 
 def as_date(dt):
-    return f"{dt}:%d-%b-%Y"
+    return f"{dt:%d-%b-%Y}"
 
 
 class Uploader:
@@ -105,8 +106,11 @@ class Uploader:
         xpath = f"//legend[ contains (text(), '{legend}')]/.."
         return self.get_unique_element_from_xpath(xpath, f"Field set: {legend}")
 
-    def get_radio_button(self, element: WebElement, value: str):
-        xpath = f".//input[@type='radio' and contains(@value, '{value}')]"
+    def get_radio_button(self, element: WebElement, value: str, exact=False):
+        if exact:
+            xpath = f".//input[@type='radio' and @value='{value}']"
+        else:
+            xpath = f".//input[@type='radio' and contains(@value, '{value}')]"
         return self.get_unique_element_from_xpath(xpath, f"Radio button '{value}'", element)
 
     def assert_logged_in(self):
@@ -129,26 +133,31 @@ class Uploader:
         return {v for v in vaccinators if not inst.check_vaccinator(v)}
 
     @classmethod
-    def upload_people(cls, people: Sequence[person.Person], batch_info: BatchInfo):
+    def upload_people(cls, people: Sequence[person.Person], batch_info: BatchInfo, save=False):
         inst = cls.get_instance()
         inst.assert_logged_in()
         for p in people:
             try:
-                inst.upload_person(p, batch_info)
+                inst.upload_person(p, batch_info, save)
+                wx.LogVerbose(f"{p.name} successfully uploaded")
                 p.status = "uploaded"
             except selenium.common.exceptions.WebDriverException as e:
                 p.status = "error"
+                wx.LogVerbose(f"{p.name} upload failed: {str(e.msg)}")
                 p.error_type = f"Selenium error: {str(e.msg)}"
             except UploadException as e:
                 p.status = "error"
+                wx.LogVerbose(f"{p.name} upload failed: {str(e)}")
                 p.error_type = f"{type(e).__name__}: {str(e)}"
 
-    def click_radio_button(self, group: str, value: str):
+    def click_radio_button(self, group: str, value: str, exact=False):
         if group.startswith("f:"):
             ctrl = self.get_fieldset(group[2:])
+        elif group.startswith("x:"):
+            ctrl = self.get_unique_element_from_xpath(group[2:], "radio button control")
         else:
             ctrl = self.get_control_from_label(group)
-        radio_button = self.get_radio_button(ctrl, value)
+        radio_button = self.get_radio_button(ctrl, value, exact)
         radio_button.click()
 
     def enter_text(self, label, text, description=""):
@@ -175,11 +184,23 @@ class Uploader:
         self.enter_text("Vaccination Date", as_date(clinic_date))
 
     def find_patient(self, p: person.Person) -> str:
+        if p.nhs == -1:
+            self.find_patient_by_dob(p)
+        else:
+            self.find_patient_by_nhs(p)
+        self.click_radio_button("Consent for email", "No")
+        self.click_radio_button("Emergency contact", "No")
+        recommendation = self.get_unique_element_from_xpath("//span[@id='nims_status_when_saved']/strong",
+                                                            "dose recommendation")
+        recommendation = recommendation.get_attribute('innerHTML')
+        return recommendation
+
+    def find_patient_by_nhs(self, p):
         try:
             self.get_unique_element_from_xpath("//input[@value='Search by patient NHS Number']",
                                                "NHS number search button").click()
             time.sleep(1)
-        except WebDriverException:
+        except (WebDriverException, ElementNotFound):
             pass
         self.enter_text("x://input[contains(@id,'pds_dob_entry')]", as_date(p.dob), "DOB entry")
         self.enter_text("x://input[contains(@id,'pds_nhsnumber_entry')]", p.get_text('nhs'), "NHS number")
@@ -194,12 +215,41 @@ class Uploader:
             raise UploadException("Incorrect demographics?")
         # click the confirm button
         self.get_unique_element_from_xpath("//input[@value='Confirm Patient']", "Confirm demographics button").click()
-        self.click_radio_button("Consent for email", "No")
-        self.click_radio_button("Emergency contact", "No")
-        recommendation = self.get_unique_element_from_xpath("//span[@id='nims_status_when_saved']/strong",
-                                                            "dose recommendation")
-        recommendation = recommendation.get_attribute('innerHTML')
-        return recommendation
+
+    def find_patient_by_dob(self, p: person.Person):
+        try:
+            self.get_unique_element_from_xpath("//input[@value='Search by patient details']",
+                                               "Patient details button").click()
+            time.sleep(1)
+        except (WebDriverException, ElementNotFound):
+            pass
+        self.enter_text("x://input[contains(@id,'pds_dob_entry')]", as_date(p.dob), "DOB entry")
+        self.click_radio_button("x://label[contains(text(),'Sex')]/..", "female", exact=True)
+        last_name, first_name = p.name.split(", ")[:2]
+        first_name = first_name.split()[0]
+        self.enter_text("x://input[contains(@id,'pds_lastname_entry')]", last_name, "Last name entry")
+        self.enter_text("x://input[contains(@id,'pds_firstname_entry')]", first_name, "First name entry")
+        # run search
+        self.get_unique_element_from_xpath("//input[@value='Lookup via PDS']", "Search PDS button").click()
+        # wait for results and confirm
+        try:
+            demographics_table: WebElement = WebDriverWait(self.browser, 2).until(
+                EC.presence_of_element_located((By.XPATH, "//table[@class='results-table']")))
+        except WebDriverException:
+            self.click_radio_button("x://label[contains(text(),'Sex')]/..", "male", exact=True)
+            self.get_unique_element_from_xpath("//input[@value='Lookup via PDS']", "Search PDS button").click()
+            try:
+                demographics_table: WebElement = WebDriverWait(self.browser, 2).until(
+                    EC.presence_of_element_located((By.XPATH, "//table[@class='results-table']")))
+            except WebDriverException:
+                raise UploadException("Incorrect demographics?")
+        # get highlighted rows, check two entries
+        correct_entries = demographics_table.find_elements_by_css_selector(".highlight-data-ok")
+        if len(correct_entries) < 3:
+            raise UploadException("Incorrect demographics?")
+        # click the confirm button
+        self.get_unique_element_from_xpath("//input[@value='Confirm Patient']", "Confirm demographics button").click()
+
 
     def do_vaccination(self, recommendation: str, batch_info: batch.BatchInfo, p: person.Person):
         if batch_info.drawer == "":
@@ -231,19 +281,31 @@ class Uploader:
         advice_set = self.get_fieldset("Advice provided")
         self.get_unique_element_from_xpath(".//input[@value='Yes']", "Advice Checkbox", advice_set).click()
 
+    def check_success(self):
+        try:
+            success_box: WebElement = WebDriverWait(self.browser, 5).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "div.mbsuccess")))
+            print(success_box)
+            if "successfully entered" in success_box.get_attribute("InnerHTML"):
+                return True
+            else:
+                return False
+        except WebDriverException:
+            return False
+
     def upload_person(self, p: person.Person, batch_info: batch.BatchInfo, save=False):
-        # self.browser.refresh()
-        # FIXME be more clever to make sure page is loaded?
-        time.sleep(3)
+        self.browser.get("https://outcomes4health.org/o4h/services/enter?id=137334&xid=137334&xact=provisionnew")
+        time.sleep(2)
+        self.assert_logged_in()
         self.setup_clinic(batch_info.clinic_date, p.vaccinator)
         recommendation = self.find_patient(p)
         self.do_vaccination(recommendation, batch_info, p)
 
         self.get_unique_element_from_xpath("//input[@type='checkbox' and @name='inContinuousEntry']",
                                            "Do another checkbox").click()
-        big_red_button = self.get_unique_element_from_xpath("//input[@type='submit' and @value='save']", "Submit data")
-        # if save:
-        #     big_red_button.click()
+        big_red_button = self.get_unique_element_from_xpath("//input[@type='submit' and @value='Save']", "Submit data")
+        if save:
+            big_red_button.click()
 
 
 class TestUploader(Uploader):

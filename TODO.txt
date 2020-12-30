@@ -27,3 +27,30 @@ Logging:
     just have a window to record log entries - helps with debugging
     DONE - now lets add a bunch of logging bits
 
+
+switch to dob entry:
+<input type="button" class="submit small no-lock reverse confirm" name="ctrlPatient_57499_pds_switch_input_button" id="ctrlPatient_57499_pds_switch_input_button" value="Search by patient details">
+
+ODS code for checking practice with dob only:
+<tr class="compare "><td class="results-table-label">GP ODS Code:</td><td class="results-table-data"></td><td class="results-table-data">A82608</td></tr>
+
+
+Error code: pt not found
+<div id="ctrlPatient_57499_pds_errors" class="hidden pds_errors" style="display: block;"><p>• Not Found. No match</p></div>
+
+
+success:
+<div class="msgbox mbsuccess">Notification "GP Notification" is queued to send.<br>
+<a href="#" onclick="$(&quot;#confirmation-long-message&quot;).show(); $(this).hide();">+ Show detailed information</a>
+<div id="confirmation-long-message" style="display:none">
+	<br>
+	<span class="info">Notification "GP Notification MESH"  was queued to send via "MESH", <br> falling back to "GP Notification Email"  was queued to send via "NHSMail"</span>
+</div>
+<br><br><hr><br>Notification "Patient Information Email" is queued to send.<br>
+<a href="#" onclick="$(&quot;#confirmation-long-message&quot;).show(); $(this).hide();">+ Show detailed information</a>
+<div id="confirmation-long-message" style="display:none">
+	<br>
+	<span class="info">Notification "Patient Info Email"  was queued to send via "NHSMail"</span>
+</div>
+<br><br><hr><br>•&nbsp;COVID Vaccine - 2020/21 provision successfully entered and saved<br><br>•&nbsp;The following system generated provision report letters are available<br><ul><li><a href="/o4h/reports/view?reportid=prvreportStandardProvision&amp;id=273591905&amp;renderNoHead" class="full-lock icon-blue"><img class="icon icon-report" src="/o4h/siteimg/filler.png" alt="Report Icon"> Basic Provision Record</a></li><li><a href="/o4h/reports/view?reportid=prvclassReportLeaflet&amp;rsid=2331&amp;id=273591905" class="full-lock icon-blue"><img class="icon icon-leaflet" src="/o4h/siteimg/filler.png" alt="Leaflet Icon"> MHRA Covid-19 Vaccination Information</a></li><li></li><li></li></ul>
+</div>

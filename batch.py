@@ -44,13 +44,23 @@ class BatchValidator(wx.Validator):
 
 
 class BatchInfo:
-    def __init__(self, dlg: "gui.GetUploadData"):
-        self.clinic_date = wx2pydt(dlg.clinic_date)
+    def __init__(self, clinic_date, drawer, manufacturer, batch, use_by_date, expiry_date):
+        self.clinic_date = clinic_date
+        self.drawer = drawer
+        self.manufacturer = manufacturer
+        self.batch = batch
+        self.use_by_date = use_by_date
+        self.expiry_date = expiry_date
+
+    @classmethod
+    def fromDialog(cls, dlg: "gui.GetUploadData"):
+        clinic_date = wx2pydt(dlg.clinic_date)
         if dlg.drawer_is_vaccinator.GetValue():
-            self.drawer = ""
+            drawer = ""
         else:
-            self.drawer = dlg.drawer_name.GetValue()
-        self.manufacturer = dlg.manufacturer.GetString(dlg.manufacturer.GetCurrentSelection())
-        self.batch = dlg.batch.GetValue()
-        self.use_by_date = wx2pydt(dlg.use_by_date)
-        self.expiry_date = wx2pydt(dlg.expiry_date)
+            drawer = dlg.drawer_name.GetValue()
+        manufacturer = dlg.manufacturer.GetString(dlg.manufacturer.GetCurrentSelection())
+        batch = dlg.batch.GetValue()
+        use_by_date = wx2pydt(dlg.use_by_date)
+        expiry_date = wx2pydt(dlg.expiry_date)
+        return cls(clinic_date, drawer, manufacturer, batch, use_by_date, expiry_date)
