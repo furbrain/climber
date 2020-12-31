@@ -174,9 +174,13 @@ class Uploader:
         ctrl = self.get_control_from_label(role)
         ctrl.clear()
         ctrl.send_keys(user)
-        time.sleep(1)
+        time.sleep(2)
         ul = WebDriverWait(self.browser, 10).until(EC.visibility_of_element_located((By.ID, menu_id)))
-        screener = self.get_unique_element_from_xpath(f".//a", f"user for {role}", ul)
+        try:
+            screener = self.get_unique_element_from_xpath(f".//a", f"user for {role}", ul)
+        except TooManyElementsFound:
+            time.sleep(2)
+            screener = self.get_unique_element_from_xpath(f".//a", f"user for {role}", ul)
         screener.click()
 
     def setup_clinic(self, clinic_date, vaccinator):
