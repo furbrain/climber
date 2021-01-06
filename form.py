@@ -104,7 +104,7 @@ class ErrorReportPDF(FPDF):
         self.add_groups(people)
 
     def print_line(self, text, image=None):
-        if image is None:
+        if not image:
             self.cell(w=0, h=5, txt=text, ln=1)
         else:
             fname = TFile.get(suffix=".png")

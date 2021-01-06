@@ -458,7 +458,14 @@ class MyFrame(wx.Frame):
             return
         batch_info = BatchInfo.fromDialog(dlg)
         # pass list of people to uploader
-        Uploader.upload_people(self.people.filter(status="scanned"), batch_info, save=True)
+        people_to_upload = self.people.filter(status="scanned")
+        progress = wx.ProgressDialog("Uploading records", "Connecting" + " " * 30, maximum=len(people_to_upload))
+
+        def callback(message, number):
+            progress.Update(number, message)
+            wx.Yield()
+
+        Uploader.upload_people(people_to_upload, batch_info, save=True, callback=callback)
         # update views
         self.update_all_lists()
 

@@ -133,10 +133,12 @@ class Uploader:
         return {v for v in vaccinators if not inst.check_vaccinator(v)}
 
     @classmethod
-    def upload_people(cls, people: Sequence[person.Person], batch_info: BatchInfo, save=False):
+    def upload_people(cls, people: Sequence[person.Person], batch_info: BatchInfo, callback=None, save=False):
         inst = cls.get_instance()
         inst.assert_logged_in()
-        for p in people:
+        for i, p in enumerate(people):
+            if callback:
+                callback(f"Uploading {p.name}", i)
             try:
                 inst.upload_person(p, batch_info, save)
                 wx.LogVerbose(f"{p.name} successfully uploaded")
@@ -171,17 +173,14 @@ class Uploader:
         ctrl.send_keys(text, Keys.TAB)
 
     def select_clinician(self, role, user, menu_id):
+        xpath = f"//ul[@id='{menu_id}']/li[1]/a"
         ctrl = self.get_control_from_label(role)
         ctrl.clear()
         ctrl.send_keys(user)
         time.sleep(2)
-        ul = WebDriverWait(self.browser, 10).until(EC.visibility_of_element_located((By.ID, menu_id)))
-        try:
-            screener = self.get_unique_element_from_xpath(f".//a", f"user for {role}", ul)
-        except TooManyElementsFound:
-            time.sleep(2)
-            screener = self.get_unique_element_from_xpath(f".//a", f"user for {role}", ul)
-        screener.click()
+        ctrl.send_keys(Keys.ARROW_DOWN)
+        clinician = WebDriverWait(self.browser, 10).until(EC.visibility_of_element_located((By.XPATH, xpath)))
+        clinician.click()
 
     def setup_clinic(self, clinic_date, vaccinator):
         self.click_radio_button("Clinic Type", "Staged Service")
@@ -266,8 +265,8 @@ class Uploader:
         self.click_radio_button("Clinically suitable", "Yes")
         self.click_radio_button("f:Vaccination consent", "1")
         self.click_radio_button("f:Consent given by", "Patient")
-        self.select_clinician("Drawn up by", drawer, "ui-id-6")
-        self.select_clinician("Vaccinator", p.vaccinator, "ui-id-7")
+        self.select_clinician("Drawn up by", drawer, "ui-id-7")
+        self.select_clinician("Vaccinator", p.vaccinator, "ui-id-8")
         if "Expect FIRST" in recommendation:
             self.click_radio_button("f:Vaccination Sequence", "First Vaccination")
         elif "Expect SECOND" in recommendation:
