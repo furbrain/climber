@@ -33,12 +33,15 @@ class BatchValidator(wx.Validator):
             return False
         return True
 
+    # noinspection PyMethodMayBeStatic
     def Clone(self):
         return BatchValidator()
 
+    # noinspection PyMethodMayBeStatic
     def TransferFromWindow(self):
         return True
 
+    # noinspection PyMethodMayBeStatic
     def TransferToWindow(self):
         return True
 

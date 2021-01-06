@@ -38,19 +38,20 @@ def convert_nhs(val):
         val = -1
     return val
 
+
 def convert_name(val: str):
     return val.title()
 
 
 def repr_nhs(val):
-    if val==-1:
+    if val == -1:
         return ""
     val = f"{val:010}"
     val = f"{val[0:3]} {val[3:6]} {val[6:10]}"
     return val
 
 
-# noinspection PyUnresolvedReferences,PyUnusedLocal
+# noinspection PyUnresolvedReferences,PyUnusedLocal,PyClassHasNoInit
 @attr.s(auto_attribs=True)
 class Person:
     dob: datetime.date = attr.ib(converter=convert_dob, repr=lambda x: f"{x:%d-%m-%Y}")
@@ -102,7 +103,7 @@ class Everyone(list):
         super().__init__()
 
     def filter(self, **kwargs) -> List[Person]:
-        lst = sorted(self, key = lambda x: x.time)
+        lst = sorted(self, key=lambda x: x.time)
         for key, value in kwargs.items():
             lst = [x for x in lst if getattr(x, key) == value]
         return lst
@@ -158,4 +159,5 @@ class Everyone(list):
         match.error_type = person.error_type
 
     def get_vaccinators(self):
+        # noinspection PyTypeChecker
         return list({p.vaccinator for p in self if p.vaccinator})

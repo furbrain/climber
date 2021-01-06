@@ -256,7 +256,6 @@ class Uploader:
         self.get_unique_element_from_xpath("//input[@value='Confirm Patient']", "Confirm demographics button").click()
         time.sleep(2)
 
-
     def do_vaccination(self, recommendation: str, batch_info: batch.BatchInfo, p: person.Person):
         if batch_info.drawer == "":
             drawer = p.vaccinator

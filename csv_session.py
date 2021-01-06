@@ -14,7 +14,8 @@ FIELDNAMES = {'starttime': 'time',
               'dob': 'dob',
               }
 
-def clean_dict(dct: Dict[str,str]):
+
+def clean_dict(dct: Dict[str, str]):
     """remove dict entries with None ie not relevant"""
     result = {}
     for key, value in dct.items():
@@ -22,6 +23,7 @@ def clean_dict(dct: Dict[str,str]):
         if key in FIELDNAMES:
             result[FIELDNAMES[key]] = value
     return result
+
 
 def load(fname):
     wx.LogStatus(f"Reading CSV file {fname}")
@@ -31,6 +33,7 @@ def load(fname):
     people = people[1:]
     people = [Person(**clean_dict(p)) for p in people]
     return people
+
 
 def save(fname, people):
     with open(fname, "w") as f:

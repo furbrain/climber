@@ -32,7 +32,7 @@ def get_person(row):
     data = data.splitlines()
     name = data[0]
     name = re.sub(r"\(.*\)", "", name)
-    if len(cells[2])==0:
+    if len(cells[2]) == 0:
         return None
     dob = cells[2][0]
     nhs = find_regex(data, NHS_REGEX)

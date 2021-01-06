@@ -72,12 +72,12 @@ class MyTestCase(unittest.TestCase):
         for vaccinators, result in combos:
             self.assertEqual(uploader.check_vaccinators(vaccinators), result)
 
-
     def test_old_csv(self):
         self.run_all_tests("test_data1.csv")
 
     def test_new_csv(self):
         self.run_all_tests("test_data2.csv")
+
 
 if __name__ == '__main__':
     unittest.main()

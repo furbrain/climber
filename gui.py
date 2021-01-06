@@ -517,7 +517,7 @@ class MyFrame(wx.Frame):
 # end of class MyFrame
 
 class MyApp(wx.App):
-    # noinspection PyAttributeOutsideInit
+    # noinspection PyAttributeOutsideInit,PyPep8Naming
     def OnInit(self):
         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH_UK)
         # locale.setlocale(locale.LC_ALL, "en_GB")

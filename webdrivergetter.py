@@ -3,7 +3,7 @@ import urllib.request
 import zipfile
 from io import BytesIO
 
-t ="https://msedgedriver.azureedge.net/87.0.664.66/edgedriver_win64.zip"
+t = "https://msedgedriver.azureedge.net/87.0.664.66/edgedriver_win64.zip"
 
 base_dir = "https://msedgedriver.azureedge.net"
 numbers = [
