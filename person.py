@@ -38,6 +38,9 @@ def convert_nhs(val):
         val = -1
     return val
 
+def convert_name(val: str):
+    return val.title()
+
 
 def repr_nhs(val):
     if val==-1:
@@ -53,7 +56,7 @@ class Person:
     dob: datetime.date = attr.ib(converter=convert_dob, repr=lambda x: f"{x:%d-%m-%Y}")
     nhs: int = attr.ib(converter=convert_nhs, repr=repr_nhs)
     time: datetime.time = attr.ib(converter=convert_time, default="00:00", repr=lambda x: f"{x:%H:%M}")
-    name: str = ""
+    name: str = attr.ib(converter=convert_name, default="")
     status: str = "imported"
     error_type: str = ""
     image: bytes = attr.ib(default=b"", repr=lambda x: f"{x != b''}")
@@ -63,11 +66,13 @@ class Person:
     @time.validator
     def _time_validator(self, attribute, value):
         if value is None:
+            self.time = datetime.time(0, 0)
             self.set_error("Invalid Time read")
 
     @dob.validator
     def _dob_validator(self, attribute, value):
         if value is None:
+            self.dob = datetime.date(1800, 1, 1)
             self.set_error("Invalid DOB read")
 
     @nhs.validator
@@ -124,6 +129,7 @@ class Everyone(list):
         else:
             match = self.get_by_nhs(person.nhs)
             if match is not None:
+                print(f"Duplicate found: {person}\n vs: {match}")
                 person.set_error("Duplicate NHS number")
         super().append(person)
 

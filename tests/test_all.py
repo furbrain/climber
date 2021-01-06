@@ -17,16 +17,17 @@ MAIN_RESULTS = {
     "No boxes ticked (DNA?)": [2616381722, 2858131467, 2242795231],
     "Selenium error: Bad upload": [3396620143],
     "RecentlyVaccinated: Already vaccinated on 01-01-2021": [5368278577],
+    "Invalid DOB read": [3105416501],
 }
 
 
 class MyTestCase(unittest.TestCase):
-    display = True
+    display = False
 
-    def test_all(self):
+    def run_all_tests(self, fname):
         # load data
         register = person.Everyone()
-        people = sessions.load_people("test_data1.csv")
+        people = sessions.load_people(fname)
 
         for p in people:
             register.append(p)
@@ -71,6 +72,12 @@ class MyTestCase(unittest.TestCase):
         for vaccinators, result in combos:
             self.assertEqual(uploader.check_vaccinators(vaccinators), result)
 
+
+    def test_old_csv(self):
+        self.run_all_tests("test_data1.csv")
+
+    def test_new_csv(self):
+        self.run_all_tests("test_data2.csv")
 
 if __name__ == '__main__':
     unittest.main()

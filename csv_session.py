@@ -1,25 +1,32 @@
 import csv
+from typing import Dict
 
 import wx
 
 from person import Person, DEFAULT_HEADINGS
 
-FIELDNAMES = ('time', 'name', 'dob', 'nhs')
+FIELDNAMES = {'starttime': 'time',
+              'time': 'time',
+              'nhsnumber': 'nhs',
+              'nhs': 'nhs',
+              'name': 'name',
+              'dateofbirth': 'dob',
+              'dob': 'dob',
+              }
 
-
-def clean_dict(dct):
+def clean_dict(dct: Dict[str,str]):
     """remove dict entries with None ie not relevant"""
-    keys = list(dct.keys())
-    for key in keys:
-        if key not in FIELDNAMES:
-            del dct[key]
-    return dct
-
+    result = {}
+    for key, value in dct.items():
+        key = key.lower()
+        if key in FIELDNAMES:
+            result[FIELDNAMES[key]] = value
+    return result
 
 def load(fname):
     wx.LogStatus(f"Reading CSV file {fname}")
     with open(fname, "r") as f:
-        reader = csv.DictReader(f, FIELDNAMES)
+        reader = csv.DictReader(f)
         people = list(reader)
     people = people[1:]
     people = [Person(**clean_dict(p)) for p in people]
