@@ -15,6 +15,7 @@ DPI = 300
 class OCR:
     instance = None
 
+    # noinspection PyProtectedMember
     def __init__(self):
         if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
             model_dir = os.path.join(sys._MEIPASS, 'model')

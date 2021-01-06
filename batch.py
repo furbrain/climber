@@ -56,7 +56,7 @@ class BatchInfo:
         self.expiry_date = expiry_date
 
     @classmethod
-    def fromDialog(cls, dlg: "gui.GetUploadData"):
+    def from_dialog(cls, dlg: "gui.GetUploadData"):
         clinic_date = wx2pydt(dlg.clinic_date)
         if dlg.drawer_is_vaccinator.GetValue():
             drawer = ""

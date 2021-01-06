@@ -13,7 +13,7 @@ def convert_time(val):
     try:
         result = dateutil.parser.parse(val).time()
     except ValueError:
-        result = None
+        result = datetime.time(0, 0)
     return result
 
 
@@ -116,6 +116,8 @@ class Everyone(list):
             return None
 
     def get_by_time_and_dob(self, time, dob) -> Union[None, Person]:
+        if not isinstance(time, datetime.time):
+            return None
         results = self.filter(time=time, dob=dob)
         if len(results) >= 1:
             return results[0]

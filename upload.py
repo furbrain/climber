@@ -26,6 +26,7 @@ if platform.system() == "Windows":
     edge_version_key = r"Software\Microsoft\Edge\BLBeacon"
     key1 = winreg.OpenKey(winreg.HKEY_CURRENT_USER, edge_version_key, 0, winreg.KEY_READ)
     edge_version = winreg.QueryValueEx(key1, "version")[0]
+    # noinspection PyPep8
     BROWSER = lambda: selenium.webdriver.Edge(f"drivers/{edge_version}.exe")
 else:
     BROWSER = selenium.webdriver.Firefox
