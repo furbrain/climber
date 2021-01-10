@@ -121,8 +121,11 @@ class Uploader:
 
     def check_vaccinator(self, vaccinator: str) -> bool:
         try:
-            self.select_clinician("Pre-Screener", vaccinator, "ui-id-1")
-        except UploadException:
+            self.click_radio_button("Clinically suitable", "Yes")
+            self.click_radio_button("f:Vaccination consent", "1")
+            self.click_radio_button("f:Consent given by", "Patient")
+            self.select_clinician("Vaccinator", vaccinator, "ui-id-8")
+        except (UploadException, WebDriverException):
             return False
         return True
 
@@ -274,12 +277,17 @@ class Uploader:
             raise VaccinationNotExpected(recommendation)
         if batch_info.manufacturer == "Pfizer":
             vax_type = "BNT162b2"
+        elif batch_info.manufacturer == "AstraZeneca 10 dose":
+            vax_type = "(AstraZeneca) 10 dose"
+        elif batch_info.manufacturer == "AstraZeneca 8 dose":
+            vax_type = "(AstraZeneca) 8 dose"
         else:
             raise UploadException(f"Unknown manufacturer: {batch_info.manufacturer}")
         self.click_radio_button("f:Vaccine Type", vax_type)
         self.enter_text("Batch number", batch_info.batch)
         self.enter_text("Manufacturer expiry", as_date(batch_info.expiry_date))
-        self.enter_text("Use by date", as_date(batch_info.use_by_date))
+        if batch_info.manufacturer == "Pfizer":
+            self.enter_text("Use by date", as_date(batch_info.use_by_date))
         self.click_radio_button("f:Injection site", "Left deltoid")
         self.click_radio_button("f:Vaccination route", "Intramuscular")
         self.enter_text("Time of vaccination", p.get_text('time'))
