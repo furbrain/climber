@@ -19,18 +19,28 @@ from batch import BatchInfo
 
 import platform
 import wx
+PINNACLE_URL = "https://outcomes4health.org/o4h/"
 
 if platform.system() == "Windows":
+    import webdrivergetter
     import winreg
 
     edge_version_key = r"Software\Microsoft\Edge\BLBeacon"
     key1 = winreg.OpenKey(winreg.HKEY_CURRENT_USER, edge_version_key, 0, winreg.KEY_READ)
     edge_version = winreg.QueryValueEx(key1, "version")[0]
     # noinspection PyPep8
-    BROWSER = lambda: selenium.webdriver.Edge(f"drivers/{edge_version}.exe")
+
+    def get_webdriver():
+        try:
+            result = selenium.webdriver.Edge(f"drivers/{edge_version}.exe")
+        except WebDriverException: #can't find the executable
+            wx.MessageBox("Installing updates to control Edge Browser")
+            webdrivergetter.get_and_install_driver(edge_version)
+            result = selenium.webdriver.Edge(f"drivers/{edge_version}.exe")
+        return result
+    BROWSER = get_webdriver
 else:
     BROWSER = selenium.webdriver.Firefox
-PINNACLE_URL = "https://outcomes4health.org/o4h/"
 
 
 class UploadException(Exception):
