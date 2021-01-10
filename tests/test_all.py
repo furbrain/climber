@@ -54,9 +54,7 @@ class MyTestCase(unittest.TestCase):
             webbrowser.open(name)
         time.sleep(1)
         num_errors_expected = sum(len(x) for x in MAIN_RESULTS.values())
-        print("expected errors: ", num_errors_expected)
         for error in errors_found:
-            print(f"Checking {error}")
             self.assertIn(error.nhs, MAIN_RESULTS[error.error_type])
         self.assertEqual(len(errors_found), num_errors_expected)
 
