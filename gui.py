@@ -414,7 +414,9 @@ class MyFrame(wx.Frame):
                     return False
         if len(failed_vaccinators) > 0:
             success = False
-            wx.MessageBox("Unknown vaccinators: " + ', '.join(failed_vaccinators))
+            error_msg = "Unknown vaccinators: " + ', '.join(failed_vaccinators)
+            wx.LogError(error_msg)
+            wx.MessageBox(error_msg + "\nThis needs to be fixed before uploading")
         return success
 
     def print_errors(self, event):  # wxGlade: MyFrame.<event_handler>

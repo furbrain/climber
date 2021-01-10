@@ -131,11 +131,12 @@ class Uploader:
             raise NotLoggedIn
 
     def check_vaccinator(self, vaccinator: str) -> bool:
+        self.refresh_page()
         try:
             self.click_radio_button("Clinically suitable", "Yes")
             self.click_radio_button("f:Vaccination consent", "1")
             self.click_radio_button("f:Consent given by", "Patient")
-            self.select_clinician("Vaccinator", vaccinator, "ui-id-8")
+            ctrl = self.select_clinician("Vaccinator", vaccinator, "ui-id-8")
         except (UploadException, WebDriverException):
             return False
         return True
@@ -195,6 +196,7 @@ class Uploader:
         ctrl.send_keys(Keys.ARROW_DOWN)
         clinician = WebDriverWait(self.browser, 10).until(EC.visibility_of_element_located((By.XPATH, xpath)))
         clinician.click()
+        return ctrl
 
     def setup_clinic(self, clinic_date, vaccinator):
         self.click_radio_button("Clinic Type", "Staged Service")
@@ -318,8 +320,7 @@ class Uploader:
             return False
 
     def upload_person(self, p: person.Person, batch_info: batch.BatchInfo, save=False):
-        self.browser.get("https://outcomes4health.org/o4h/services/enter?id=137334&xid=137334&xact=provisionnew")
-        time.sleep(2)
+        self.refresh_page()
         body = self.browser.find_element_by_tag_name('body')
         body.send_keys(Keys.CONTROL + Keys.HOME)
         self.assert_logged_in()
@@ -332,6 +333,10 @@ class Uploader:
         big_red_button = self.get_unique_element_from_xpath("//input[@type='submit' and @value='Save']", "Submit data")
         if save:
             big_red_button.click()
+
+    def refresh_page(self):
+        self.browser.get("https://outcomes4health.org/o4h/services/enter?id=137334&xid=137334&xact=provisionnew")
+        time.sleep(1)
 
 
 class TestUploader(Uploader):
