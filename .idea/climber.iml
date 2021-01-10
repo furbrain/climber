@@ -8,7 +8,7 @@
       <excludeFolder url="file://$MODULE_DIR$/Output" />
       <excludeFolder url="file://$MODULE_DIR$/drivers" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.8 (climber)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.8 (covid)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

@@ -40,14 +40,6 @@ def resize_list_ctrl(ctrl):
         ctrl.SetColumnWidth(i, resize_by)
 
 
-def populate_list(ctrl: wx.ListCtrl, people: List[person.Person], headings: Sequence[str]):
-    for index, p in enumerate(people):
-        texts = p.get_texts(headings)
-        for col, text in enumerate(texts):
-            if col == 0:
-                ctrl.InsertItem(index, text)
-            else:
-                ctrl.SetItem(index, col, text)
 
 
 # noinspection PyPep8Naming,PyUnusedLocal
@@ -190,7 +182,7 @@ class MyFrame(wx.Frame):
         self.vaccinator_data.SetColLabelValue(0, "Initials")
         self.vaccinator_data.SetColSize(0, 100)
         self.vaccinator_data.SetColLabelValue(1, "Name")
-        self.vaccinator_data.SetColSize(1, 600)
+        self.vaccinator_data.SetColSize(1, 550)
         self.imported_data_list.AppendColumn("Time", format=wx.LIST_FORMAT_LEFT, width=-1)
         self.imported_data_list.AppendColumn("Name", format=wx.LIST_FORMAT_LEFT, width=-1)
         self.imported_data_list.AppendColumn("Dob", format=wx.LIST_FORMAT_LEFT, width=-1)
@@ -292,12 +284,30 @@ class MyFrame(wx.Frame):
         self.Layout()
         # end wxGlade
 
+    def populate_list(self, ctrl: wx.ListCtrl, people: List[person.Person], headings: Sequence[str]):
+        for index, p in enumerate(people):
+            texts = p.get_texts(headings)
+            for col, text in enumerate(texts):
+                if col == 0:
+                    ctrl.InsertItem(index, text)
+                else:
+                    ctrl.SetItem(index, col, text)
+            ctrl.SetItemData(index, self.people.index(p))
+
+    def get_selected_people(self, ctrl: wx.ListCtrl):
+        index = ctrl.GetFirstSelected()
+        result = []
+        while index != -1:
+            person_index = ctrl.GetItemData(index)
+            result.append(self.people[person_index])
+            index = ctrl.GetNextSelected(index)
+        return result
 
     def update_list(self, list_ctrl: wx.ListCtrl, count_ctrl: wx.StaticText, status: str,
                     headings=person.DEFAULT_HEADINGS):
         list_ctrl.DeleteAllItems()
         filtered_people = sorted(self.people.filter(status=status), key=lambda x: x.time)
-        populate_list(list_ctrl, filtered_people, headings)
+        self.populate_list(list_ctrl, filtered_people, headings)
         resize_list_ctrl(list_ctrl)
         count_ctrl.SetLabel(str(len(filtered_people)))
 
@@ -364,7 +374,11 @@ class MyFrame(wx.Frame):
 
     def uploadData(self, event):  # wxGlade: MyFrame.<event_handler>
         # check system is logged in
-        vaccinators = self.people.get_vaccinators()
+        if self.scanned_data_list.GetSelectedItemCount()==0:
+            people_to_upload = self.people.filter(status="scanned")
+        else:
+            people_to_upload = self.get_selected_people(self.scanned_data_list)
+        vaccinators = {p.vaccinator for p in people_to_upload}
         wx.LogStatus(f"checking vaccinators: {vaccinators}")
         if not self.vaccinator_list_valid(vaccinators):
             return
@@ -373,8 +387,6 @@ class MyFrame(wx.Frame):
         if dlg.ShowModal() != wx.ID_OK:
             return
         batch_info = BatchInfo.fromDialog(dlg)
-        # pass list of people to uploader
-        people_to_upload = self.people.filter(status="scanned")
         progress = wx.ProgressDialog("Uploading records", "Connecting" + " " * 30, maximum=len(people_to_upload))
 
         def callback(message, number):
