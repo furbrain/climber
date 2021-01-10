@@ -361,7 +361,10 @@ class MyFrame(wx.Frame):
                 if not progress.Update(count, f"Scanning {fname}"):
                     break
                 wx.Yield()
-                scanned_people = OCR.process_form(path, self.get_vaccinators())
+                try:
+                    scanned_people = OCR.process_form(path, self.get_vaccinators())
+                except Exception as e:
+                    wx.LogError(str(e))
                 for p in scanned_people:
                     self.people.update(p)
             progress.Destroy()
@@ -429,8 +432,10 @@ class MyFrame(wx.Frame):
         if self.vaccinator_list_valid(self.get_vaccinators()):
             wx.MessageBox("All vaccinators recognised")
 
+    # noinspection PyMethodMayBeStatic
     def self_test(self, event):  # wxGlade: MyFrame.<event_handler>
         wx.LogVerbose("Running tests")
+        # noinspection PyTypeChecker
         all_tests = unittest.TestLoader().loadTestsFromModule(tests.test_all)
         results = unittest.TestResult()
         results = all_tests.run(results)
