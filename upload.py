@@ -22,15 +22,20 @@ import wx
 PINNACLE_URL = "https://outcomes4health.org/o4h/"
 
 if platform.system() == "Windows":
-    import webdrivergetter
-    import winreg
-
-    edge_version_key = r"Software\Microsoft\Edge\BLBeacon"
-    key1 = winreg.OpenKey(winreg.HKEY_CURRENT_USER, edge_version_key, 0, winreg.KEY_READ)
-    edge_version = winreg.QueryValueEx(key1, "version")[0]
     # noinspection PyPep8
 
     def get_webdriver():
+        import webdrivergetter
+        import winreg
+
+        edge_version_key = r"Software\Microsoft\Edge\BLBeacon"
+        try:
+            key1 = winreg.OpenKey(winreg.HKEY_CURRENT_USER, edge_version_key, 0, winreg.KEY_READ)
+            edge_version = winreg.QueryValueEx(key1, "version")[0]
+        except FileNotFoundError:
+            wx.MessageBox("Could not find browser. Please install Microsoft Edge")
+            wx.LogError("No Browser found")
+            raise UploadException("No Browser found")
         try:
             result = selenium.webdriver.Edge(f"drivers/{edge_version}.exe")
         except WebDriverException: #can't find the executable
@@ -136,7 +141,7 @@ class Uploader:
             self.click_radio_button("Clinically suitable", "Yes")
             self.click_radio_button("f:Vaccination consent", "1")
             self.click_radio_button("f:Consent given by", "Patient")
-            ctrl = self.select_clinician("Vaccinator", vaccinator, "ui-id-8")
+            self.select_clinician("Vaccinator", vaccinator, "ui-id-8")
         except (UploadException, WebDriverException):
             return False
         return True

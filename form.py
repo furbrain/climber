@@ -38,6 +38,7 @@ class DataEntryPDF(FPDF):
                 self.ellipse(x, y, 8, 8, style="F")
         self.set_xy((self.w / 2 - 50), 10)
         self.set_font("Times", "B", 16)
+        self.set_fill_color(255)
         self.cell(100, 8, "Covid19 Vaccinations", align="C")
         self.set_mono_font()
         self.set_top_margin(25)
@@ -54,7 +55,7 @@ class DataEntryPDF(FPDF):
         y = self.get_y()
         for w, c in zip(widths, contents):
             x = self.get_x()
-            self.cell(w, 8, c, border=1)
+            self.cell(w, 8, c, border=1, fill=True)
             bounds.append([x, y, x + w, y + 8])
         self.ln(12)
         return bounds

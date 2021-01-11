@@ -22,7 +22,7 @@ def convert_dob(val):
         return val
     try:
         result = dateutil.parser.parse(val, dayfirst=True).date()
-    except ValueError:
+    except (ValueError, OverflowError):
         result = None
     return result
 

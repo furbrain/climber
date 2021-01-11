@@ -439,7 +439,7 @@ class MyFrame(wx.Frame):
                     scanned_people = OCR.process_form(path, self.get_vaccinators())
                 except Exception as e:
                     wx.LogError(str(e))
-                    return
+                    continue
                 for p in scanned_people:
                     self.people.update(p)
             progress.Destroy()
@@ -464,7 +464,7 @@ class MyFrame(wx.Frame):
         dlg = GetUploadData(self)
         if dlg.ShowModal() != wx.ID_OK:
             return
-        batch_info = BatchInfo.fromDialog(dlg)
+        batch_info = BatchInfo.from_dialog(dlg)
         progress = wx.ProgressDialog("Uploading records", "Connecting" + " " * 30, maximum=len(people_to_upload))
 
         def callback(message, number):
