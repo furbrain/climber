@@ -10,3 +10,6 @@ __pycache__
 /drivers/
 *.bak
 
+.idea/.name
+.idea/climber.iml
+.idea/misc.xml
