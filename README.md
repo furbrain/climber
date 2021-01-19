@@ -7,6 +7,8 @@ but can also work directly with appointment lists from EMIS
 
 It is written by Phil Underwood - I have a passion for coding and work as a GP within the NHS
 
+See a demo [here](https://youtu.be/WSNt-N3F9O4)
+
 ## Data Security
 I take data security very seriously. This software does not write any patient identifiable information to disk. It does not store any
 usernames or passwords. The only time patient data is sent over the internet is during the upload process to Outcomes4Health. No information
