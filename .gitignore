@@ -9,7 +9,7 @@ __pycache__
 /dist/
 /drivers/
 *.bak
-
+*~
 .idea/.name
 .idea/climber.iml
 .idea/misc.xml

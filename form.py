@@ -31,6 +31,9 @@ class DataEntryPDF(FPDF):
 
     def new_page(self):
         self.add_page()
+        self.set_top_margin(25)
+        self.set_left_margin(15)
+        self.set_fill_color(0)
         xs = [10, self.w - 10 - 8]
         ys = [10, self.h - 10 - 8]
         for x in xs:
@@ -41,8 +44,6 @@ class DataEntryPDF(FPDF):
         self.set_fill_color(255)
         self.cell(100, 8, "Covid19 Vaccinations", align="C")
         self.set_mono_font()
-        self.set_top_margin(25)
-        self.set_left_margin(15)
         self.set_xy(self.l_margin, self.t_margin)
         columns = ['Time', 'Name', 'DoB', 'NHS#'] + self.vaccinators
         self.add_line(columns)
