@@ -19,6 +19,7 @@ from .batch import BatchInfo
 
 import platform
 import wx
+
 PINNACLE_URL = "https://outcomes4health.org/o4h/"
 
 if platform.system() == "Windows":
@@ -38,11 +39,13 @@ if platform.system() == "Windows":
             raise UploadException("No Browser found")
         try:
             result = selenium.webdriver.Edge(f"drivers/{edge_version}.exe")
-        except WebDriverException: #can't find the executable
+        except WebDriverException:  # can't find the executable
             wx.MessageBox("Installing updates to control Edge Browser")
             webdrivergetter.get_and_install_driver(edge_version)
             result = selenium.webdriver.Edge(f"drivers/{edge_version}.exe")
         return result
+
+
     BROWSER = get_webdriver
 else:
     BROWSER = selenium.webdriver.Firefox

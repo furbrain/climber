@@ -1,17 +1,19 @@
 wxPython~=4.1.1
 python-dateutil~=2.8.1
-opencv-python~=4.4.0.46
+opencv-python==4.4.0.46
 numpy==1.19.5
 beautifulsoup4~=4.9.3
 fpdf~=1.7.2
 attrs~=20.3.0
 selenium~=3.141.0
 -f https://download.pytorch.org/whl/torch_stable.html
-torch==1.7.1+cpu
+torch==1.7.1+cpu; sys_platform == 'windows'
+torch==1.7.1; sys_platform != 'windows'
 -f https://download.pytorch.org/whl/torch_stable.html
-torchvision==0.8.2+cpu
+torchvision==0.8.2+cpu; sys_platform == 'windows'
+torchvision==0.8.2; sys_platform != 'windows'
 -f https://download.pytorch.org/whl/torch_stable.html
 torchaudio
-easyocr~=1.2.1
+easyocr==1.2.1
 pyyaml
 pyinstaller

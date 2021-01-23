@@ -2,7 +2,7 @@ import time
 import unittest
 import webbrowser
 
-from  .. import form
+from .. import form
 from ..ocr import OCR
 from .. import person
 from .. import sessions

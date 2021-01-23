@@ -3,7 +3,6 @@ import urllib.request
 import zipfile
 from io import BytesIO
 
-
 BASE_DIR = "https://msedgedriver.azureedge.net"
 
 
@@ -17,7 +16,7 @@ def get_and_install_driver(num):
             shutil.copyfileobj(driver, out)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     numbers = [
         "89.0.749.0",
         "89.0.744.0",
@@ -29,5 +28,5 @@ if __name__=="__main__":
         "87.0.666.0",
         "87.0.664.66",
     ]
-    for num in numbers:
-        get_and_install_driver(num)
+    for number in numbers:
+        get_and_install_driver(number)

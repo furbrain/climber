@@ -118,7 +118,7 @@ class ClimberFrame(MyFrame):
 
     def upload_data(self, event):
         # check system is logged in
-        if self.scanned_data_list.GetSelectedItemCount()==0:
+        if self.scanned_data_list.GetSelectedItemCount() == 0:
             people_to_upload = self.people.filter(status="scanned")
         else:
             people_to_upload = self.get_selected_people(self.scanned_data_list)
@@ -191,7 +191,7 @@ class ClimberFrame(MyFrame):
     def check_in_search_activity(self, event: wx.Event):  # wxGlade: MyFrame.<event_handler>
         event_type = event.GetEventType()
         if event_type == wx.wxEVT_KEY_DOWN:
-            assert(isinstance(event, wx.KeyEvent))
+            assert (isinstance(event, wx.KeyEvent))
             keycode = event.GetKeyCode()
             if keycode == wx.WXK_DOWN:
                 print("Down")
@@ -203,6 +203,7 @@ class ClimberFrame(MyFrame):
             print("search text changed")
         else:
             event.Skip()
+
 
 class MyApp(wx.App):
     # noinspection PyAttributeOutsideInit,PyPep8Naming

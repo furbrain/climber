@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-import wx
-import src.ui
-import platform
 import ctypes
+import platform
+
+import src.ui
 
 if platform.system() == "Windows":
     PROCESS_PER_MONITOR_DPI_AWARE = 2

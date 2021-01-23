@@ -17,7 +17,7 @@ whatsoever is sent to myself.
 ## Limitations
 This software assumes that all vaccinations are done with the patient's consent, are done into the left deltoid, and are not done in a residential home. You will need to keep
 a manual record of all patients for whom this is not correct and correct them after the upload, or mark the record as invalid before scanning,
-and perform all of the data entry manually for these patients.
+and perform all the data entry manually for these patients.
 
 ## Installation
 Firstly you need to ensure that you have an up-to-date version of Microsoft Edge (*not* legacy). Most computers should have this
@@ -27,7 +27,7 @@ Download the installer from [Github](https://github.com/furbrain/climber/release
 (PS you should not do this unless you *really* trust the source of the software you are installing)
 
 ## Before the vaccination session
-Before starting the software, you will need to log into accubook, choose `Booked List`, and click export next to the session you want to
+Before starting the software, you will need to log into Accubook, choose `Booked List`, and click export next to the session you want to
 set up. Save this file (should be session-xxxx.csv) somewhere safe. You may want to create a folder for each vaccination session on a secure
 drive.
 Once this is done, run Climber - you'll find it from the Start Menu. You will see multiple tabs along the top of the app, and we generally move through them from
@@ -39,11 +39,11 @@ page for Pinnacle - log in and navigate to the Covid 20/21 vaccination service p
 of Edge and check that all of your vaccinators are recognised. It is important that all vaccinators log in at least once into Pinnacle, so
 they can enter their GMC/NMC numbers and are fully registered on the system
 
-Once you get the all-clear you can move on to the next tab `Create Forms`
+Once you get the all-clear, you can move on to the next tab `Create Forms`
 
 ## Creating the forms
 * Click `Import Appointments` and select the csv file you saved earlier
-* You will see all the appointment slots created and you will get a total number of patients booked in at the bottom
+* You will see all the appointment slots created, and you will get a total number of patients booked in at the bottom
 * Click `Create Forms` - this will create a pdf file, which you can either save or print out. This is what you will use to record
   attendance and vaccinator during the vaccination session itself
 * Notice the black circles at each corner of the form. These are really important for the scanning process later on and its vital 
@@ -52,11 +52,11 @@ Once you get the all-clear you can move on to the next tab `Create Forms`
 ## During the session
 * As patients arrive and are directed to a vaccinator, simple make a cross in the relevant box on the form
 * If you make a mistake add a cross to another box in the form, or write in the boxes who actually did the vaccination.
-  These patients will not be uploaded automatically and you will need to do these manually later
+  These patients will not be uploaded automatically, and you will need to do these manually later
 * If any patients do not attend, leave their boxes blank. They will also not be uploaded.
 
 ## After the session
-* Scan all of the completed forms back in as jpg files - this will depend on your scanning software. They should be scanned in at 300dpi
+* Scan all the completed forms back in as jpg files - this will depend on your scanning software. They should be scanned in at 300dpi
   as either grayscale or black and white images. Save these to a secure folder
 * If you have closed the climber software previously, you will need to restart it and re-enter the vaccinator details - it is important
   that you enter them in the same order as they appear on the forms. You will also need to repeat the `Import appointments` step, but you
@@ -65,7 +65,7 @@ Once you get the all-clear you can move on to the next tab `Create Forms`
   reading them, but this process may take up to 20 minutes or so. Have a cup of tea while you wait!
 * Once everything is scanned in, you can now select patients to upload; I would suggest just click on a few of them to start with to check
   everything is working ok. You will need to log into Pinnacle again. 
-* Enter the details of the batch of vaccine you are working with and the date of the clinic; for AstraZeneca vaccines just use the same
+* Enter the clinic date, and also the details of the batch of vaccine you are using. For AstraZeneca vaccines just use the same
   date for expiry and use-by dates.
 * Press OK and wait while all of your vaccination data is uploaded to Pinnacle. This can take several hours, but no supervision is required
 
