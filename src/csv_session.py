@@ -3,7 +3,7 @@ from typing import Dict
 
 import wx
 
-from person import Person, DEFAULT_HEADINGS
+from .person import Person, DEFAULT_HEADINGS
 
 FIELDNAMES = {'starttime': 'time',
               'time': 'time',

@@ -13,9 +13,9 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-import batch
-import person
-from batch import BatchInfo
+from . import batch
+from . import person
+from .batch import BatchInfo
 
 import platform
 import wx

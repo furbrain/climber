@@ -6,8 +6,8 @@ import cv2
 import numpy as np
 import wx
 
-import form
-from person import Person
+from . import form
+from .person import Person
 
 DPI = 300
 

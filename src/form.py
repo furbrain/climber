@@ -5,8 +5,8 @@ from typing import List, Sequence
 import numpy as np
 from fpdf import FPDF
 
-import person
-from tfile import TFile
+from . import person
+from .tfile import TFile
 
 NUM_ROWS_PER_PDF = 20
 COLUMN_WIDTHS = [15, 55, 25, 30] + [8] * 7

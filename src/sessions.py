@@ -1,9 +1,9 @@
 import sys
 from typing import List
 
-import rtf_session
-import csv_session
-from person import Person
+from . import rtf_session
+from . import csv_session
+from .person import Person
 
 
 def load_people(fname: str) -> List[Person]:

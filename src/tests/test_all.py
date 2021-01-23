@@ -2,12 +2,12 @@ import time
 import unittest
 import webbrowser
 
-import form
-from ocr import OCR
-import person
-import sessions
-import upload
-from tfile import TFile
+from  .. import form
+from ..ocr import OCR
+from .. import person
+from .. import sessions
+from .. import upload
+from ..tfile import TFile
 
 VACCINATORS = ["PU", "JC", "DB", "PJW", "SK"]
 

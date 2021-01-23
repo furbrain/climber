@@ -5,7 +5,7 @@ from typing import List
 import wx
 from bs4 import BeautifulSoup
 
-from person import Person
+from .person import Person
 
 DOB_REGEX = r"Date Of Birth: (\S+)"
 NHS_REGEX = r"NHS Number: ([0-9 ]{10,12})"
