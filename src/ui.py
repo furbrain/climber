@@ -188,6 +188,21 @@ class ClimberFrame(MyFrame):
         else:
             wx.MessageBox(f"No errors found in {results.testsRun} tests", "Success")
 
+    def check_in_search_activity(self, event: wx.Event):  # wxGlade: MyFrame.<event_handler>
+        event_type = event.GetEventType()
+        if event_type == wx.wxEVT_KEY_DOWN:
+            assert(isinstance(event, wx.KeyEvent))
+            keycode = event.GetKeyCode()
+            if keycode == wx.WXK_DOWN:
+                print("Down")
+            elif keycode == wx.WXK_UP:
+                print("Up")
+            else:
+                event.Skip()
+        elif event_type == wx.wxEVT_TEXT:
+            print("search text changed")
+        else:
+            event.Skip()
 
 class MyApp(wx.App):
     # noinspection PyAttributeOutsideInit,PyPep8Naming
