@@ -16,6 +16,7 @@ from .tfile import TFile
 from .upload import Uploader, NotLoggedIn
 from .tests import test_all
 
+
 class ClimberFrame(MyFrame):
     def __init__(self):
         super().__init__(None, wx.ID_ANY, "")
@@ -58,7 +59,7 @@ class ClimberFrame(MyFrame):
                          person.DEFAULT_HEADINGS + ('error_type', 'image'))
         self.update_list(self.completed_data_list, self.completed_count_label, "uploaded")
 
-    def importSession(self, event):  # wxGlade: MyFrame.<event_handler>
+    def import_session(self, event):  # wxGlade: MyFrame.<event_handler>
         with wx.FileDialog(self,
                            "Open Session files",
                            wildcard="Session files (*.rtf; *.csv)|*.rtf;*.csv",
@@ -71,12 +72,12 @@ class ClimberFrame(MyFrame):
                 self.people.extend(people)
         self.update_all_lists()
 
-    def clearData(self, event):  # wxGlade: MyFrame.<event_handler>
+    def clear_data(self, event):  # wxGlade: MyFrame.<event_handler>
         if wx.MessageBox("Clear All Data?", style=wx.OK | wx.CANCEL) == wx.OK:
             self.people = person.Everyone()
             self.update_all_lists()
 
-    def createForms(self, event):  # wxGlade: MyFrame.<event_handler>
+    def create_forms(self, event):  # wxGlade: MyFrame.<event_handler>
         name = TFile.get(".pdf")
         row_count = self.vaccinator_data.GetNumberRows()
         vaccinator_initials = [self.vaccinator_data.GetCellValue(i, 0) for i in range(row_count)]
@@ -84,7 +85,7 @@ class ClimberFrame(MyFrame):
         pdf.save(name)
         webbrowser.open(name)
 
-    def loadForms(self, event):  # wxGlade: MyFrame.<event_handler>
+    def load_scanned_forms(self, event):  # wxGlade: MyFrame.<event_handler>
         with wx.FileDialog(self,
                            "Open Scanned Forms",
                            wildcard="Image files (*.tif; *.png; *.jpeg; *.jpg)|*.tif;*.png;*.jpeg;*.jpg",
@@ -115,7 +116,7 @@ class ClimberFrame(MyFrame):
         vaccinators = [x for x in vaccinators if x]
         return vaccinators
 
-    def uploadData(self, event):  # wxGlade: MyFrame.<event_handler>
+    def upload_data(self, event):
         # check system is logged in
         if self.scanned_data_list.GetSelectedItemCount()==0:
             people_to_upload = self.people.filter(status="scanned")
@@ -166,7 +167,7 @@ class ClimberFrame(MyFrame):
         report.save(fname)
         webbrowser.open(fname)
 
-    def createSummary(self, event):  # wxGlade: MyFrame.<event_handler>
+    def create_summary(self, event):
         print("Event handler 'createSummary' not implemented!")
         event.Skip()
 
