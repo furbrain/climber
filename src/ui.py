@@ -188,6 +188,16 @@ class ClimberFrame(MyFrame):
         else:
             wx.MessageBox(f"No errors found in {results.testsRun} tests", "Success")
 
+    def page_changed(self, event):
+        if self.notebook_1.GetCurrentPage() == self.notebook_1_Checkin:
+            vaccinators = self.get_vaccinators()
+            current = self.check_in_drawer.GetCurrentSelection()
+            self.check_in_drawer.Set(['Vaccinator'] + vaccinators)
+            self.check_in_drawer.SetSelection(current)
+            current = self.check_in_vaccinator.GetCurrentSelection()
+            self.check_in_vaccinator.Set(vaccinators)
+            self.check_in_vaccinator.SetSelection(current)
+
     def check_in_search_activity(self, event: wx.Event):  # wxGlade: MyFrame.<event_handler>
         event_type = event.GetEventType()
         if event_type == wx.wxEVT_KEY_DOWN:
@@ -200,10 +210,16 @@ class ClimberFrame(MyFrame):
             else:
                 event.Skip()
         elif event_type == wx.wxEVT_TEXT:
-            print("search text changed")
+            #get candidates
+            name = self.check_in_search.GetValue()
+            candidates = self.people.get_name_matches(name)
+            self.check_in_data_list.DeleteAllItems()
+            self.populate_list(self.check_in_data_list,candidates, person.DEFAULT_HEADINGS)
         else:
             event.Skip()
 
+    def check_in_upload_clicked(self, event):
+        self.check_in_search.SetFocus()
 
 class MyApp(wx.App):
     # noinspection PyAttributeOutsideInit,PyPep8Naming

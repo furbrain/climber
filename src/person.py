@@ -97,6 +97,11 @@ class Person:
         """Get a list of strings for each heading"""
         return [self.get_text(heading) for heading in headings]
 
+    def name_match(self, search_name: str):
+        name_lower_parts = self.name.lower().split()
+        search_parts = search_name.strip().split()
+        return all(any(n.startswith(part) for n in name_lower_parts) for part in search_parts)
+
 
 class Everyone(list):
     def __init__(self):
@@ -163,3 +168,10 @@ class Everyone(list):
     def get_vaccinators(self):
         # noinspection PyTypeChecker
         return list({p.vaccinator for p in self if p.vaccinator})
+
+    def get_name_matches(self, name, status="imported"):
+        filtered = self.filter(status=status)
+        if name:
+            return [p for p in filtered if p.name_match(name.lower())]
+        else:
+            return filtered
