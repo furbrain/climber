@@ -5,7 +5,8 @@ from typing import List, Sequence
 
 import wx
 
-from . import person
+import src.batch_manager
+from . import person, batch
 from . import sessions
 from . import form
 from .batch import BatchInfo
@@ -22,6 +23,7 @@ class ClimberFrame(MyFrame):
         super().__init__(None, wx.ID_ANY, "")
         self.people = person.Everyone()
         self.logger = wx.LogTextCtrl(self.log_info)
+        self.bm = src.batch_manager.BatchManager(self)
         wx.Log.SetActiveTarget(self.logger)
 
     def populate_list(self, ctrl: wx.ListCtrl, people: List[person.Person], headings: Sequence[str]):
@@ -210,16 +212,21 @@ class ClimberFrame(MyFrame):
             else:
                 event.Skip()
         elif event_type == wx.wxEVT_TEXT:
-            #get candidates
+            # get candidates
             name = self.check_in_search.GetValue()
             candidates = self.people.get_name_matches(name)
             self.check_in_data_list.DeleteAllItems()
-            self.populate_list(self.check_in_data_list,candidates, person.DEFAULT_HEADINGS)
+            self.populate_list(self.check_in_data_list, candidates, person.DEFAULT_HEADINGS)
         else:
             event.Skip()
 
     def check_in_upload_clicked(self, event):
         self.check_in_search.SetFocus()
+
+    def manage_batches_clicked(self, event):
+        self.bm.ShowModal()
+        self.check_in_batch.SetItems([b.batch for b in self.bm.batches])
+
 
 class MyApp(wx.App):
     # noinspection PyAttributeOutsideInit,PyPep8Naming
