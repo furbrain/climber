@@ -23,7 +23,6 @@ class BatchManager(BatchDialog):
 
     def add_batch(self, event):
         dlg = GetUploadData(self)
-        dlg.main_sizer.Hide(dlg.clinic_date_section)
         dlg.main_sizer.Hide(dlg.drawer_section)
         if dlg.ShowModal() == wx.ID_OK:
             self.batches.append(BatchInfo.from_dialog(dlg))
@@ -31,7 +30,6 @@ class BatchManager(BatchDialog):
 
     def edit_batch(self, event):
         dlg = GetUploadData(self)
-        dlg.main_sizer.Hide(dlg.clinic_date_section)
         dlg.main_sizer.Hide(dlg.drawer_section)
         index = self.batch_list_ctrl.GetFirstSelected()
         if index >= 0:

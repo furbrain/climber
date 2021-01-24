@@ -3,6 +3,7 @@ import typing
 
 import wx
 import wx.adv
+import attr
 
 if typing.TYPE_CHECKING:
     import gui
@@ -50,29 +51,24 @@ class BatchValidator(wx.Validator):
         return True
 
 
+@attr.s
 class BatchInfo:
-    def __init__(self, clinic_date, drawer, manufacturer, batch, use_by_date, expiry_date):
-        self.clinic_date = clinic_date
-        self.drawer = drawer
-        self.manufacturer = manufacturer
-        self.batch = batch
-        self.use_by_date = use_by_date
-        self.expiry_date = expiry_date
+    clinic_date: datetime.datetime = attr.ib()
+    manufacturer: str = attr.ib()
+    batch: str = attr.ib()
+    use_by_date: datetime.datetime = attr.ib()
+    expiry_date: datetime.datetime = attr.ib()
 
     @classmethod
     def from_dialog(cls, dlg: "gui.GetUploadData"):
         clinic_date = wx2pydt(dlg.clinic_date)
-        if dlg.drawer_is_vaccinator.GetValue():
-            drawer = ""
-        else:
-            drawer = dlg.drawer_name.GetValue()
         manufacturer = dlg.manufacturer.GetString(dlg.manufacturer.GetCurrentSelection())
         batch = dlg.batch.GetValue()
         use_by_date = wx2pydt(dlg.use_by_date)
         expiry_date = wx2pydt(dlg.expiry_date)
-        return cls(clinic_date, drawer, manufacturer, batch, use_by_date, expiry_date)
+        return cls(clinic_date, manufacturer, batch, use_by_date, expiry_date)
 
-    def fill_dialog(self, dlg: "src.gui.GetUploadData"):
+    def fill_dialog(self, dlg: "gui.GetUploadData"):
         dlg.clinic_date.SetValue(pydt2wx(self.clinic_date))
         dlg.expiry_date.SetValue(pydt2wx(self.expiry_date))
         dlg.use_by_date.SetValue(pydt2wx(self.use_by_date))

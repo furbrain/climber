@@ -1,12 +1,15 @@
 import os
+import queue
+import time
 import unittest
 import webbrowser
+import threading
 from typing import List, Sequence
 
 import wx
 
 import src.batch_manager
-from . import person, batch
+from . import person
 from . import sessions
 from . import form
 from .batch import BatchInfo
@@ -18,6 +21,35 @@ from .upload import Uploader, NotLoggedIn
 from .tests import test_all
 
 
+class UploadThread(threading.Thread):
+    def __init__(self, q: queue.Queue):
+        super().__init__()
+        self.stop = False
+        self.queue: queue.Queue = q
+        self.busy = False
+
+    def time_to_stop(self):
+        return self.stop and self.queue.empty()
+
+    def run(self):
+        while not self.time_to_stop():
+            try:
+                batch_info, p = self.queue.get(timeout=0.3)
+            except queue.Empty:
+                pass
+            else:
+                self.busy = True
+                Uploader.upload_people([p], batch_info, save=True)
+                self.busy = False
+
+    def stop(self):
+        if self.queue.empty():
+            self.stop = True
+            return True
+        else:
+            return False
+
+
 class ClimberFrame(MyFrame):
     def __init__(self):
         super().__init__(None, wx.ID_ANY, "")
@@ -25,6 +57,9 @@ class ClimberFrame(MyFrame):
         self.logger = wx.LogTextCtrl(self.log_info)
         self.bm = src.batch_manager.BatchManager(self)
         wx.Log.SetActiveTarget(self.logger)
+        self.upload_queue = queue.Queue()
+        self.upload_thread = UploadThread(self.upload_queue)
+        self.upload_thread.start()
 
     def populate_list(self, ctrl: wx.ListCtrl, people: List[person.Person], headings: Sequence[str]):
         for index, p in enumerate(people):
@@ -133,6 +168,14 @@ class ClimberFrame(MyFrame):
         if dlg.ShowModal() != wx.ID_OK:
             return
         batch_info = BatchInfo.from_dialog(dlg)
+        if dlg.drawer_is_vaccinator.GetValue():
+            for p in people_to_upload:
+                p.drawer = p.vaccinator
+        else:
+            drawer = dlg.drawer_name.GetValue()
+            for p in people_to_upload:
+                p.drawer = drawer
+
         progress = wx.ProgressDialog("Uploading records", "Connecting" + " " * 30, maximum=len(people_to_upload))
 
         def callback(message, number):
@@ -143,11 +186,11 @@ class ClimberFrame(MyFrame):
         # update views
         self.update_all_lists()
 
-    def vaccinator_list_valid(self, vaccinators):
-        success = True
+    def ensure_logged_in(self):
         while True:
             try:
-                failed_vaccinators = Uploader.check_vaccinators(vaccinators)
+                inst = Uploader.get_instance()
+                inst.assert_logged_in()
                 break
             except NotLoggedIn:
                 dlg = wx.MessageDialog(self,
@@ -155,6 +198,13 @@ class ClimberFrame(MyFrame):
                                        style=wx.OK | wx.CANCEL)
                 if dlg.ShowModal() != wx.ID_OK:
                     return False
+        return True
+
+    def vaccinator_list_valid(self, vaccinators):
+        success = True
+        if not self.ensure_logged_in():
+            return False
+        failed_vaccinators = Uploader.check_vaccinators(vaccinators)
         if len(failed_vaccinators) > 0:
             success = False
             error_msg = "Unknown vaccinators: " + ', '.join(failed_vaccinators)
@@ -191,6 +241,7 @@ class ClimberFrame(MyFrame):
             wx.MessageBox(f"No errors found in {results.testsRun} tests", "Success")
 
     def page_changed(self, event):
+        self.update_all_lists()
         if self.notebook_1.GetCurrentPage() == self.notebook_1_Checkin:
             vaccinators = self.get_vaccinators()
             current = self.check_in_drawer.GetCurrentSelection()
@@ -212,19 +263,19 @@ class ClimberFrame(MyFrame):
                     if list_size > 0:
                         self.check_in_data_list.Select(0)
                 else:
-                    if list_size > index+1:
-                        self.check_in_data_list.Select(index+1)
+                    if list_size > index + 1:
+                        self.check_in_data_list.Select(index + 1)
                     else:
                         self.check_in_data_list.Select(0)
             elif keycode == wx.WXK_UP:
                 if index == -1:
                     if list_size > 0:
-                        self.check_in_data_list.Select(list_size-1)
+                        self.check_in_data_list.Select(list_size - 1)
                 else:
                     if index > 0:
-                        self.check_in_data_list.Select(index-1)
+                        self.check_in_data_list.Select(index - 1)
                     else:
-                        self.check_in_data_list.Select(list_size-1)
+                        self.check_in_data_list.Select(list_size - 1)
             else:
                 event.Skip()
         elif event_type == wx.wxEVT_TEXT:
@@ -237,7 +288,33 @@ class ClimberFrame(MyFrame):
             event.Skip()
 
     def check_in_upload_clicked(self, event):
-        self.check_in_search.SetFocus()
+        # get person first
+        person_count = self.check_in_data_list.GetItemCount()
+        index = self.check_in_data_list.GetFirstSelected()
+        if person_count == 1:
+            person_index = self.check_in_data_list.GetItemData(0)
+            p = self.people[person_index]
+        elif person_count > 1 and index >= 0:
+            p = self.get_selected_people(self.check_in_data_list)[0]
+        else:
+            wx.MessageBox("You must select a person to upload")
+            self.check_in_search.SetFocus()
+            return
+        p.vaccinator = self.check_in_vaccinator.get_current_string()
+        drawer = self.check_in_drawer.get_current_string()
+        if drawer == "Vaccinator":
+            p.drawer = p.vaccinator
+        else:
+            p.drawer = drawer
+        if len(self.bm.batches) == 0:
+            wx.MessageBox("You must specify some batches before uploading. Click 'Manage Batches'")
+            return
+        batch_index = self.check_in_batch.GetSelection()
+        this_batch = self.bm.batches[batch_index]
+        if self.upload_thread.busy or self.ensure_logged_in():
+            self.upload_queue.put((this_batch, p))
+            self.check_in_search.Clear()
+            self.check_in_search.SetFocus()
 
     def manage_batches_clicked(self, event):
         self.bm.ShowModal()

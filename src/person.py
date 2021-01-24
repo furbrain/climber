@@ -3,6 +3,7 @@ from typing import Union, List
 
 import dateutil.parser
 import attr
+import threading
 
 DEFAULT_HEADINGS = ('time', 'name', 'dob', 'nhs')
 
@@ -63,6 +64,8 @@ class Person:
     image: bytes = attr.ib(default=b"", repr=lambda x: f"{x != b''}")
     vaccinator_initials: str = ""
     vaccinator: str = ""
+    drawer: str = ""
+    lock: threading.Lock = attr.ib(factory=threading.Lock, init=False)
 
     @time.validator
     def _time_validator(self, attribute, value):
@@ -82,25 +85,28 @@ class Person:
             self.set_error("Invalid NHS number")
 
     def set_error(self, reason):
-        self.status = "error"
-        self.error_type = reason
+        with self.lock:
+            self.status = "error"
+            self.error_type = reason
 
     def get_text(self, heading):
-        field = getattr(attr.fields(type(self)), heading)
-        var = getattr(self, heading)
-        if isinstance(field.repr, bool):
-            return str(var)
-        else:
-            return field.repr(var)
+        with self.lock:
+            field = getattr(attr.fields(type(self)), heading)
+            var = getattr(self, heading)
+            if isinstance(field.repr, bool):
+                return str(var)
+            else:
+                return field.repr(var)
 
     def get_texts(self, headings=DEFAULT_HEADINGS):
         """Get a list of strings for each heading"""
         return [self.get_text(heading) for heading in headings]
 
     def name_match(self, search_name: str):
-        name_lower_parts = self.name.lower().split()
-        search_parts = search_name.strip().split()
-        return all(any(n.startswith(part) for n in name_lower_parts) for part in search_parts)
+        with self.lock:
+            name_lower_parts = self.name.lower().split()
+            search_parts = search_name.strip().split()
+            return all(any(n.startswith(part) for n in name_lower_parts) for part in search_parts)
 
 
 class Everyone(list):

@@ -27,3 +27,7 @@ class KeyChoice(wx.Choice):
                     wx.Bell()
             else:
                 event.Skip()
+
+    def get_current_string(self):
+        index = self.GetSelection()
+        return self.GetString(index)

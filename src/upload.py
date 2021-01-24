@@ -1,4 +1,5 @@
 import datetime
+import threading
 import time
 from typing import Sequence, Set, Optional
 
@@ -88,6 +89,7 @@ class Uploader:
     def __init__(self):
         self.browser = BROWSER()
         self.browser.get(PINNACLE_URL)
+        self.lock = threading.RLock()
 
     @classmethod
     def get_instance(cls):
@@ -133,21 +135,23 @@ class Uploader:
         return self.get_unique_element_from_xpath(xpath, f"Radio button '{value}'", element)
 
     def assert_logged_in(self):
-        try:
-            self.get_unique_element_from_xpath("//h3[contains(text(), 'COVID Vaccine - 2020/21')]", "title")
-        except ElementNotFound:
-            raise NotLoggedIn
+        with self.lock:
+            try:
+                self.get_unique_element_from_xpath("//h3[contains(text(), 'COVID Vaccine - 2020/21')]", "title")
+            except ElementNotFound:
+                raise NotLoggedIn
 
     def check_vaccinator(self, vaccinator: str) -> bool:
-        self.refresh_page()
-        try:
-            self.click_radio_button("Clinically suitable", "Yes")
-            self.click_radio_button("f:Vaccination consent", "1")
-            self.click_radio_button("f:Consent given by", "Patient")
-            self.select_clinician("Vaccinator", vaccinator, "ui-id-8")
-        except (UploadException, WebDriverException):
-            return False
-        return True
+        with self.lock:
+            self.refresh_page()
+            try:
+                self.click_radio_button("Clinically suitable", "Yes")
+                self.click_radio_button("f:Vaccination consent", "1")
+                self.click_radio_button("f:Consent given by", "Patient")
+                self.select_clinician("Vaccinator", vaccinator, "ui-id-8")
+            except (UploadException, WebDriverException):
+                return False
+            return True
 
     @classmethod
     def check_vaccinators(cls, vaccinators: Sequence[str]) -> Set[str]:
@@ -281,14 +285,10 @@ class Uploader:
         time.sleep(2)
 
     def do_vaccination(self, recommendation: str, batch_info: batch.BatchInfo, p: person.Person):
-        if batch_info.drawer == "":
-            drawer = p.vaccinator
-        else:
-            drawer = batch_info.drawer
         self.click_radio_button("Clinically suitable", "Yes")
         self.click_radio_button("f:Vaccination consent", "1")
         self.click_radio_button("f:Consent given by", "Patient")
-        self.select_clinician("Drawn up by", drawer, "ui-id-7")
+        self.select_clinician("Drawn up by", p.drawer, "ui-id-7")
         self.select_clinician("Vaccinator", p.vaccinator, "ui-id-8")
         if "Expect FIRST" in recommendation:
             self.click_radio_button("f:Vaccination Sequence", "First Vaccination")
@@ -328,19 +328,21 @@ class Uploader:
             return False
 
     def upload_person(self, p: person.Person, batch_info: batch.BatchInfo, save=False):
-        self.refresh_page()
-        body = self.browser.find_element_by_tag_name('body')
-        body.send_keys(Keys.CONTROL + Keys.HOME)
-        self.assert_logged_in()
-        self.setup_clinic(batch_info.clinic_date, p.vaccinator)
-        recommendation = self.find_patient(p)
-        self.do_vaccination(recommendation, batch_info, p)
+        with self.lock:
+            self.refresh_page()
+            body = self.browser.find_element_by_tag_name('body')
+            body.send_keys(Keys.CONTROL + Keys.HOME)
+            self.assert_logged_in()
+            self.setup_clinic(batch_info.clinic_date, p.vaccinator)
+            recommendation = self.find_patient(p)
+            self.do_vaccination(recommendation, batch_info, p)
 
-        self.get_unique_element_from_xpath("//input[@type='checkbox' and @name='inContinuousEntry']",
-                                           "Do another checkbox").click()
-        big_red_button = self.get_unique_element_from_xpath("//input[@type='submit' and @value='Save']", "Submit data")
-        if save:
-            big_red_button.click()
+            self.get_unique_element_from_xpath("//input[@type='checkbox' and @name='inContinuousEntry']",
+                                               "Do another checkbox").click()
+            big_red_button = self.get_unique_element_from_xpath("//input[@type='submit' and @value='Save']",
+                                                                "Submit data")
+            if save:
+                big_red_button.click()
 
     def refresh_page(self):
         self.browser.get("https://outcomes4health.org/o4h/services/enter?id=137334&xid=137334&xact=provisionnew")

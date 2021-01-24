@@ -22,6 +22,8 @@ Error reporting:
          - box ticked but no NHS number / dob
 
 Functionality:
+    implement pause/abort shutdown when needed
+
 
 Logging:
     just have a window to record log entries - helps with debugging
