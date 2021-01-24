@@ -205,10 +205,26 @@ class ClimberFrame(MyFrame):
         if event_type == wx.wxEVT_KEY_DOWN:
             assert (isinstance(event, wx.KeyEvent))
             keycode = event.GetKeyCode()
+            index = self.check_in_data_list.GetFirstSelected()
+            list_size = self.check_in_data_list.GetItemCount()
             if keycode == wx.WXK_DOWN:
-                print("Down")
+                if index == -1:
+                    if list_size > 0:
+                        self.check_in_data_list.Select(0)
+                else:
+                    if list_size > index+1:
+                        self.check_in_data_list.Select(index+1)
+                    else:
+                        self.check_in_data_list.Select(0)
             elif keycode == wx.WXK_UP:
-                print("Up")
+                if index == -1:
+                    if list_size > 0:
+                        self.check_in_data_list.Select(list_size-1)
+                else:
+                    if index > 0:
+                        self.check_in_data_list.Select(index-1)
+                    else:
+                        self.check_in_data_list.Select(list_size-1)
             else:
                 event.Skip()
         elif event_type == wx.wxEVT_TEXT:
@@ -226,6 +242,8 @@ class ClimberFrame(MyFrame):
     def manage_batches_clicked(self, event):
         self.bm.ShowModal()
         self.check_in_batch.SetItems([b.batch for b in self.bm.batches])
+        if len(self.bm.batches) > 0:
+            self.check_in_batch.SetSelection(0)
 
 
 class MyApp(wx.App):

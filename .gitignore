@@ -1,7 +1,7 @@
 /results.png
 __pycache__
 *.pyc
-/#~wxg.autosave~climber.wxg#
+*.wxg#
 /geckodriver.log
 /venv/
 /Output/
@@ -13,3 +13,4 @@ __pycache__
 .idea/.name
 .idea/climber.iml
 .idea/misc.xml
+/src/#~wxg.autosave~climber.wxg#
