@@ -129,9 +129,9 @@ class Uploader:
 
     def get_radio_button(self, element: WebElement, value: str, exact=False):
         if exact:
-            xpath = f".//input[@type='radio' and @value='{value}']"
+            xpath = f".//input[(@type='radio' or @type'checkbox') and @value='{value}']"
         else:
-            xpath = f".//input[@type='radio' and contains(@value, '{value}')]"
+            xpath = f".//input[(@type='radio' or @type='checkbox') and contains(@value, '{value}')]"
         return self.get_unique_element_from_xpath(xpath, f"Radio button '{value}'", element)
 
     def assert_logged_in(self):
@@ -222,6 +222,8 @@ class Uploader:
             self.find_patient_by_nhs(p)
         self.click_radio_button("Consent for email", "No")
         self.click_radio_button("Emergency contact", "No")
+        self.click_radio_button("f:About the patient - Tick ALL that apply", "None of the above")
+        self.click_radio_button("f:Ethnicity", "White - British")
         time.sleep(2)
         recommendation = self.get_unique_element_from_xpath("//span[@id='nims_status_when_saved']/strong",
                                                             "dose recommendation")

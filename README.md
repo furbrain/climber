@@ -18,6 +18,8 @@ whatsoever is sent to myself.
 This software assumes that all vaccinations are done with the patient's consent, are done into the left deltoid, and are not done in a residential home. You will need to keep
 a manual record of all patients for whom this is not correct and correct them after the upload, or mark the record as invalid before scanning,
 and perform all the data entry manually for these patients.
+* UPDATE 27/1/21: Pinnacle now requires you to enter ethnicity and caring status - these default to "White British" and "None of the above" - again
+  these will need to be entered manually after the session if these are not correct
 
 ## Installation
 Firstly you need to ensure that you have an up-to-date version of Microsoft Edge (*not* legacy). Most computers should have this

@@ -1,24 +1,23 @@
 import os
 import queue
-import time
+import threading
 import unittest
 import webbrowser
-import threading
 from typing import List, Sequence
 
 import wx
 
 import src.batch_manager
+from . import form
 from . import person
 from . import sessions
-from . import form
 from .batch import BatchInfo
 from .form import ErrorReportPDF
 from .gui import MyFrame, GetUploadData
 from .ocr import OCR
+from .tests import test_all
 from .tfile import TFile
 from .upload import Uploader, NotLoggedIn
-from .tests import test_all
 
 
 class UploadThread(threading.Thread):
