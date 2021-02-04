@@ -6,7 +6,7 @@ block_cipher = None
 
 easy_ocr_dir = os.path.dirname(importlib.import_module('easyocr').__file__)
 
-a = Analysis(['gui.py'],
+a = Analysis(['main.py'],
              pathex=['C:\\Users\\beard\\OneDrive\\Documents\\GitHub\\climber'],
              binaries=[],
              datas=[('drivers/*.exe', 'drivers/'),

@@ -27,7 +27,7 @@ if platform.system() == "Windows":
     # noinspection PyPep8
 
     def get_webdriver():
-        import webdrivergetter
+        from . import webdrivergetter
         import winreg
 
         edge_version_key = r"Software\Microsoft\Edge\BLBeacon"
