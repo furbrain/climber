@@ -331,6 +331,7 @@ class Uploader:
 
     def upload_person(self, p: person.Person, batch_info: batch.BatchInfo, save=False):
         with self.lock:
+            p.batch_no = batch_info.batch
             self.refresh_page()
             body = self.browser.find_element_by_tag_name('body')
             body.send_keys(Keys.CONTROL + Keys.HOME)
@@ -368,6 +369,7 @@ class TestUploader(Uploader):
         return vaccinator in self.valid_vaccinators
 
     def upload_person(self, p: person.Person, batch_info: batch.BatchInfo, save=False):
+        p.batch_no = batch_info.batch
         last_digit = str(p.nhs)[-1]
         if last_digit == "3":
             raise selenium.common.exceptions.WebDriverException("Bad upload")

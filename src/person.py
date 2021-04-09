@@ -1,5 +1,5 @@
 import datetime
-from typing import Union, List
+from typing import Union, List, Sequence
 
 import dateutil.parser
 import attr
@@ -65,6 +65,7 @@ class Person:
     vaccinator_initials: str = ""
     vaccinator: str = ""
     drawer: str = ""
+    batch_no: str = ""
     lock: threading.Lock = attr.ib(factory=threading.Lock, init=False)
 
     @time.validator
@@ -98,7 +99,7 @@ class Person:
             else:
                 return field.repr(var)
 
-    def get_texts(self, headings=DEFAULT_HEADINGS):
+    def get_texts(self, headings: Sequence[str] = DEFAULT_HEADINGS):
         """Get a list of strings for each heading"""
         return [self.get_text(heading) for heading in headings]
 

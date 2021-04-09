@@ -105,16 +105,19 @@ class ErrorReportPDF(FPDF):
         self.set_xy(self.l_margin, self.t_margin)
         self.add_groups(people)
 
-    def print_line(self, text, image=None):
-        if not image:
-            self.cell(w=0, h=5, txt=text, ln=1)
-        else:
+    def print_line(self, text, image=None, extra=None):
+        if image:
             fname = TFile.get(suffix=".png")
             with open(fname, "wb") as f:
                 f.write(image)
             self.cell(w=self.w // 2 - self.l_margin, h=5, txt=text)
             self.image(fname, w=self.w // 2 - self.r_margin, h=5)
             self.ln()
+        elif extra:
+            self.cell(w=self.w // 2 - self.l_margin, h=5, txt=text)
+            self.cell(w=self.w // 2 - self.l_margin, h=5, txt=extra, ln=1)
+        else:
+            self.cell(w=0, h=5, txt=text, ln=1)
 
     def print_group(self, reason, people: Sequence[person.Person]):
         self.set_font("Arial", "B", 12)
@@ -122,7 +125,8 @@ class ErrorReportPDF(FPDF):
         self.set_font("Arial", "", 10)
         for p in people:
             text = ' '.join(p.get_texts())
-            self.print_line(text, p.image)
+            extra = ': '.join(p.get_texts(('vaccinator', 'batch_no')))
+            self.print_line(text, p.image, extra)
 
     def add_groups(self, people: Sequence[person.Person]):
         people = sorted(people, key=attrgetter("error_type"))
