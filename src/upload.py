@@ -148,7 +148,7 @@ class Uploader:
                 self.click_radio_button("Clinically suitable", "Yes")
                 self.click_radio_button("f:Vaccination consent", "1")
                 self.click_radio_button("f:Consent given by", "Patient")
-                self.select_clinician("Vaccinator", vaccinator, "ui-id-8")
+                self.select_clinician("Vaccinator", vaccinator, "ui-id-9")
             except (UploadException, WebDriverException):
                 return False
             return True
@@ -290,8 +290,8 @@ class Uploader:
         self.click_radio_button("Clinically suitable", "Yes")
         self.click_radio_button("f:Vaccination consent", "1")
         self.click_radio_button("f:Consent given by", "Patient")
-        self.select_clinician("Drawn up by", p.drawer, "ui-id-7")
-        self.select_clinician("Vaccinator", p.vaccinator, "ui-id-8")
+        self.select_clinician("Drawn up by", p.drawer, "ui-id-8")
+        self.select_clinician("Vaccinator", p.vaccinator, "ui-id-9")
         if "Expect FIRST" in recommendation:
             self.click_radio_button("f:Vaccination Sequence", "First Vaccination")
         elif "Expect SECOND" in recommendation:
