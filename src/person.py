@@ -4,6 +4,7 @@ from typing import Union, List, Sequence
 import dateutil.parser
 import attr
 import threading
+from . import batch
 
 DEFAULT_HEADINGS = ('time', 'name', 'dob', 'nhs')
 
@@ -65,8 +66,9 @@ class Person:
     vaccinator_initials: str = ""
     vaccinator: str = ""
     drawer: str = ""
-    batch_no: str = ""
+    batch_no: batch.BatchInfo = None
     lock: threading.Lock = attr.ib(factory=threading.Lock, init=False)
+    upload_attempts: int = 0
 
     @time.validator
     def _time_validator(self, attribute, value):

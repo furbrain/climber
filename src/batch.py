@@ -59,6 +59,9 @@ class BatchInfo:
     use_by_date: datetime.datetime = attr.ib()
     expiry_date: datetime.datetime = attr.ib()
 
+    def __str__(self):
+        return f"{self.manufacturer}: {self.batch}"
+
     @classmethod
     def from_dialog(cls, dlg: "gui.GetUploadData"):
         clinic_date = wx2pydt(dlg.clinic_date)

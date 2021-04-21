@@ -16,7 +16,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from . import batch
 from . import person
-from .batch import BatchInfo
 
 import platform
 import wx
@@ -160,14 +159,14 @@ class Uploader:
         return {v for v in vaccinators if not inst.check_vaccinator(v)}
 
     @classmethod
-    def upload_people(cls, people: Sequence[person.Person], batch_info: BatchInfo, callback=None, save=False):
+    def upload_people(cls, people: Sequence[person.Person], callback=None, save=False):
         inst = cls.get_instance()
         inst.assert_logged_in()
         for i, p in enumerate(people):
             if callback:
                 callback(f"Uploading {p.name}", i)
             try:
-                inst.upload_person(p, batch_info, save)
+                inst.upload_person(p, p.batch_no, save)
                 wx.LogVerbose(f"{p.name} successfully uploaded")
                 p.status = "uploaded"
             except selenium.common.exceptions.WebDriverException as e:
@@ -331,7 +330,6 @@ class Uploader:
 
     def upload_person(self, p: person.Person, batch_info: batch.BatchInfo, save=False):
         with self.lock:
-            p.batch_no = batch_info.batch
             self.refresh_page()
             body = self.browser.find_element_by_tag_name('body')
             body.send_keys(Keys.CONTROL + Keys.HOME)

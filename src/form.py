@@ -1,6 +1,6 @@
 from itertools import groupby
 from operator import attrgetter
-from typing import List, Sequence
+from typing import List, Sequence, Iterator
 
 import numpy as np
 from fpdf import FPDF
@@ -119,7 +119,7 @@ class ErrorReportPDF(FPDF):
         else:
             self.cell(w=0, h=5, txt=text, ln=1)
 
-    def print_group(self, reason, people: Sequence[person.Person]):
+    def print_group(self, reason, people: Iterator[person.Person]):
         self.set_font("Arial", "B", 12)
         self.print_line(reason)
         self.set_font("Arial", "", 10)

@@ -24,7 +24,7 @@ class UploadThread(threading.Thread):
     def __init__(self, q: queue.Queue):
         super().__init__()
         self.stop = False
-        self.queue: queue.Queue = q
+        self.queue: queue.Queue[person.Person] = q
         self.busy = False
 
     def time_to_stop(self):
@@ -33,12 +33,16 @@ class UploadThread(threading.Thread):
     def run(self):
         while not self.time_to_stop():
             try:
-                batch_info, p = self.queue.get(timeout=0.3)
+                p = self.queue.get(timeout=0.3)
             except queue.Empty:
                 pass
             else:
                 self.busy = True
-                Uploader.upload_people([p], batch_info, save=True)
+                Uploader.upload_people([p], save=True)
+                if p.status == "error" and p.upload_attempts < 3:
+                    p.upload_attempts += 1
+                    p.status = "pending"
+                    self.queue.put(p)
                 self.busy = False
 
     def stop(self):
@@ -94,6 +98,7 @@ class ClimberFrame(MyFrame):
         self.update_list(self.error_data_list, self.error_count_label, "error",
                          person.DEFAULT_HEADINGS + ('error_type', 'image'))
         self.update_list(self.completed_data_list, self.completed_count_label, "uploaded")
+        self.update_list(self.pending_data_list, self.pending_count_label, "pending")
 
     def import_session(self, event):  # wxGlade: MyFrame.<event_handler>
         with wx.FileDialog(self,
@@ -175,14 +180,10 @@ class ClimberFrame(MyFrame):
             for p in people_to_upload:
                 p.drawer = drawer
 
-        progress = wx.ProgressDialog("Uploading records", "Connecting" + " " * 30, maximum=len(people_to_upload))
-
-        def callback(message, number):
-            progress.Update(number, message)
-            wx.Yield()
-
-        Uploader.upload_people(people_to_upload, batch_info, save=True, callback=callback)
-        # update views
+        for p in people_to_upload:
+            p.batch_no = batch_info
+            p.status = "pending"
+            self.upload_queue.put(p)
         self.update_all_lists()
 
     def ensure_logged_in(self):
@@ -309,9 +310,10 @@ class ClimberFrame(MyFrame):
             wx.MessageBox("You must specify some batches before uploading. Click 'Manage Batches'")
             return
         batch_index = self.check_in_batch.GetSelection()
-        this_batch = self.bm.batches[batch_index]
+        p.batch_no = self.bm.batches[batch_index]
         if self.upload_thread.busy or self.ensure_logged_in():
-            self.upload_queue.put((this_batch, p))
+            p.status = "pending"
+            self.upload_queue.put(p)
             self.check_in_search.Clear()
             self.check_in_search.SetFocus()
 
