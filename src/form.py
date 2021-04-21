@@ -137,6 +137,11 @@ class ErrorReportPDF(FPDF):
         self.output(fname, dest="F")
 
 
+class SuccessReportPDF(ErrorReportPDF):
+    def add_groups(self, people: Sequence[person.Person]):
+        self.print_group("Success", people)
+
+
 if __name__ == "__main__":
     data_entry_form = DataEntryPDF([], [])
     data_entry_form.save("blank.pdf")

@@ -12,7 +12,7 @@ from . import form
 from . import person
 from . import sessions
 from .batch import BatchInfo
-from .form import ErrorReportPDF
+from .form import ErrorReportPDF, SuccessReportPDF
 from .gui import MyFrame, GetUploadData
 from .ocr import OCR
 from .tests import test_all
@@ -220,8 +220,11 @@ class ClimberFrame(MyFrame):
         webbrowser.open(fname)
 
     def create_summary(self, event):
-        print("Event handler 'createSummary' not implemented!")
-        event.Skip()
+        successes = self.people.filter(status="uploaded")
+        report = SuccessReportPDF(successes)
+        fname = TFile.get(suffix=".pdf")
+        report.save(fname)
+        webbrowser.open(fname)
 
     def check_vaccinators(self, event):  # wxGlade: MyFrame.<event_handler>
         if self.vaccinator_list_valid(self.get_vaccinators()):
